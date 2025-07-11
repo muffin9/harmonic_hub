@@ -1,36 +1,14 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+### To do list
 
-## Getting Started
+- 악보 업로드(MusicXML포맷) 기능 - 화면에 악보 노출 - 악기별 재생 기능 + 믹서 기능 구현 - 템포 조절 기능
 
-First, run the development server:
+**전체 연주가 합쳐진 오디오 음원파일, 파트별 음원 리드/피아노/드럼/베이스 파일,  악보 시각화를 위한 MusicXML 파일**
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Major, Minor 키 변경 가능 여부 파악 필요
+- 템포 조절 가능여부필요 [
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**보내준 mp3와 동일한 음색으로, 리드/피아노/드럼/베이스 각각 재생되게 하려면**",
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+MIDI보다는 각각 **트랙별로 mp3를 따로 받은 후, 분리 재생**하는 구조가 더 확실하고 안정적임.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- MusicXML은 악보 정보(박자, 조표, 음표, 마디, 반복 등)를 포함하는 정형화된 악보 포맷
