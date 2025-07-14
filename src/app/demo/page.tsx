@@ -1,5 +1,5 @@
 import { ScoreAndMp3Section } from '@/components/midi-score-uploader';
-import Footer from '@/components/ui/footer';
+import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 
 export default function DemoPage() {
