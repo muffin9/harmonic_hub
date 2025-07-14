@@ -2,27 +2,23 @@
 
 import Link from 'next/link';
 import React, { useState } from 'react';
+import { SocialLoginButtons } from '../SocialLoginButtons';
 
-const Login = () => {
+const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [saveEmail, setSaveEmail] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <section className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12">
-      <div className="bg-white rounded-xl w-full max-w-md p-8 shadow-lg relative">
-        {/* 제목 */}
-        <h2 className="text-2xl font-bold text-center mb-6">로그인</h2>
-
+    <section className="w-full space-y-6">
+      <div className="space-y-2">
         {/* 간편 로그인 */}
-        <div className="text-sm text-purple-600 font-medium mb-2">
-          간편 로그인
-        </div>
-        <div className="flex justify-center gap-4 mb-6">
-          <img src="/naver-icon.png" alt="Naver" className="w-6 h-6" />
-          <img src="/kakao-icon.png" alt="Kakao" className="w-6 h-6" />
-          <img src="/google-icon.png" alt="Google" className="w-6 h-6" />
+        <div className="w-full flex gap-16">
+          <span className="text-sm text-purple-600 font-medium mb-2">
+            간편 로그인
+          </span>
+          <SocialLoginButtons />
         </div>
 
         {/* 서비스명 로그인 */}
@@ -91,4 +87,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginForm;
