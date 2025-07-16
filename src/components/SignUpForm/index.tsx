@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import Image from 'next/image';
 import { SocialLoginButtons } from '../SocialLoginButtons';
+import { validateAuthEmail } from '@/api/auth';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SignUpForm() {
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [agreements, setAgreements] = useState({
@@ -16,6 +18,9 @@ export default function SignUpForm() {
     marketing: false,
     sms: false,
   });
+  const [password, setPassword] = useState('');
+  const [showCodeInput, setShowCodeInput] = useState(false);
+  const [authCode, setAuthCode] = useState('');
 
   const handleEmailChange = (value: string) => {
     setEmail(value);
@@ -24,8 +29,27 @@ export default function SignUpForm() {
 
   const isFormValid = agreements.over14 && agreements.terms;
 
-  const validateEmail = () => {
-    alert('이메일 인증 서비스 준비중입니다..');
+  const validateEmail = async () => {
+    toast({
+      title: 'test',
+      variant: 'default',
+    });
+    const data = await validateAuthEmail(email);
+    if (data.status === true) {
+      toast({
+        title: data.message,
+        variant: 'default',
+        duration: 1000,
+      });
+      setShowCodeInput(true);
+    } else {
+      toast({
+        title: data.message,
+        variant: 'destructive',
+        duration: 1000,
+      });
+      setShowCodeInput(false);
+    }
   };
 
   const handleSignUp = () => {
@@ -35,20 +59,45 @@ export default function SignUpForm() {
   return (
     <div className="w-full space-y-6">
       <div className="space-y-2">
-        <label className="text-sm font-medium">일반가입</label>
-        <Input
-          placeholder="이메일 입력"
-          value={email}
-          onChange={(e) => handleEmailChange(e.target.value)}
-        />
-        {isEmailValid && <span className="text-green-500 text-sm">✔</span>}
+        <div className="flex flex-col gap-4">
+          <label className="text-sm font-medium">일반가입</label>
+          <div className="flex items-center">
+            <Input
+              placeholder="이메일 입력"
+              value={email}
+              onChange={(e) => handleEmailChange(e.target.value)}
+            />
+
+            {isEmailValid && <span className="text-green-500 text-sm">✔</span>}
+          </div>
+        </div>
         <Button
           variant="default"
-          className="w-full bg-purple-300 cursor-pointer"
+          className="mt-8 w-full bg-purple-300 cursor-pointer"
           onClick={validateEmail}
+          disabled={!isEmailValid}
         >
           이메일 인증
         </Button>
+        {showCodeInput && (
+          <div className="mt-4 space-y-2 animate-fade-in">
+            <label className="text-sm font-medium">
+              이메일로 받은 인증코드 입력
+            </label>
+            <Input
+              placeholder="인증코드 입력"
+              value={authCode}
+              onChange={(e) => setAuthCode(e.target.value)}
+            />
+          </div>
+        )}
+        <Input
+          type="password"
+          placeholder="비밀번호 입력"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="mt-2"
+        />
       </div>
 
       <div className="border p-4 rounded-md space-y-2 text-sm">
