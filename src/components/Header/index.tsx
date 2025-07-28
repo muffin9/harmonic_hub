@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SignUpForm from '@/components/SignUpForm';
 import {
   Dialog,
@@ -12,12 +12,49 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import LoginForm from '../LoginForm';
+import ResetPasswordForm from '../ResetPasswordForm';
+import { getUser, logout } from '@/lib/auth';
 
 const categories = ['All', 'Jazz', 'Pop&Rock', 'EDM', 'K-pop', '기타'];
 
 const Header = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    // 컴포넌트 마운트 시 유저 정보 확인
+    const currentUser = getUser();
+    setUser(currentUser);
+  }, []);
+
+  const handleSignup = () => {
+    setIsSignUpOpen(false); // 회원가입 폼 닫기
+    setIsLoginOpen(true); // 회원가입 완료 후 로그인 폼 열기
+  };
+
+  const handleLogin = () => {
+    setIsLoginOpen(false);
+    // 로그인 성공 후 유저 정보 업데이트
+    const currentUser = getUser();
+    setUser(currentUser);
+  };
+
+  const handleSwitchToSignup = () => {
+    setIsLoginOpen(false);
+    setIsSignUpOpen(true);
+  };
+
+  const handleSwitchToResetPassword = () => {
+    setIsLoginOpen(false);
+    setIsResetPasswordOpen(true);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setUser(null);
+  };
 
   return (
     <>
@@ -35,20 +72,36 @@ const Header = () => {
             </div>
           </Link>
 
-          <div className="flex gap-4">
-            <Button
-              className="cursor-pointer bg-white text-black hover:bg-white/50 hover:text-black/50"
-              onClick={() => setIsLoginOpen(true)}
-            >
-              Login
-            </Button>
+          <div className="flex gap-4 items-center">
+            {user ? (
+              // 로그인된 상태
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-700">{user.email}</span>
+                <Button
+                  className="cursor-pointer bg-white text-black hover:bg-white/50 hover:text-black/50"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              // 로그인되지 않은 상태
+              <>
+                <Button
+                  className="cursor-pointer bg-white text-black hover:bg-white/50 hover:text-black/50"
+                  onClick={() => setIsLoginOpen(true)}
+                >
+                  Login
+                </Button>
 
-            <Button
-              className="cursor-pointer bg-white text-black hover:bg-white/50 hover:text-black/50"
-              onClick={() => setIsSignUpOpen(true)}
-            >
-              Sign up
-            </Button>
+                <Button
+                  className="cursor-pointer bg-white text-black hover:bg-white/50 hover:text-black/50"
+                  onClick={() => setIsSignUpOpen(true)}
+                >
+                  Sign up
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
@@ -84,7 +137,7 @@ const Header = () => {
           <DialogHeader>
             <DialogTitle className="text-center">회원가입</DialogTitle>
           </DialogHeader>
-          <SignUpForm />
+          <SignUpForm signupCallbackFunc={handleSignup} />
         </DialogContent>
       </Dialog>
 
@@ -93,7 +146,20 @@ const Header = () => {
           <DialogHeader>
             <DialogTitle className="text-center">로그인</DialogTitle>
           </DialogHeader>
-          <LoginForm />
+          <LoginForm
+            loginCallbackFunc={handleLogin}
+            signupCallbackFunc={handleSwitchToSignup}
+            resetPasswordCallbackFunc={handleSwitchToResetPassword}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isResetPasswordOpen} onOpenChange={setIsResetPasswordOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">비밀번호 재설정</DialogTitle>
+          </DialogHeader>
+          <ResetPasswordForm resetPasswordCallbackFunc={handleLogin} />
         </DialogContent>
       </Dialog>
     </>

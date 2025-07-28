@@ -1,9 +1,19 @@
-export default function Home() {
+'use client';
+
+import { ScoreAndMp3Section } from '@/components/midi-score-uploader';
+import Footer from '@/components/Footer';
+import Header from '@/components/Header';
+import { Toaster } from '@/components/ui/toaster';
+
+export default function HomePage() {
   return (
-    <main className="min-h-screen flex items-center justify-center">
-      <div className="w-full flex justify-center px-4">
-        서비스 준비중입니다..
+    <main className="min-h-screen flex flex-col items-center justify-center">
+      <div className="w-full">
+        <Header />
+        <ScoreAndMp3Section />
+        <Footer />
       </div>
+      <Toaster />
     </main>
   );
 }

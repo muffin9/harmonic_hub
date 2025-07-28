@@ -1,3 +1,4 @@
+import { kakaoLogin } from '@/api/auth';
 import Image from 'next/image';
 
 export const SocialLoginButtons = () => {
@@ -9,6 +10,9 @@ export const SocialLoginButtons = () => {
         width={30}
         height={30}
         className="cursor-pointer"
+        onClick={async () => {
+          alert('서비스 준비중입니다.');
+        }}
       />
       <Image
         src="/google.svg"
@@ -16,6 +20,9 @@ export const SocialLoginButtons = () => {
         width={30}
         height={30}
         className="cursor-pointer"
+        onClick={async () => {
+          alert('서비스 준비중입니다.');
+        }}
       />
       <Image
         src="/kakao.svg"
@@ -23,6 +30,10 @@ export const SocialLoginButtons = () => {
         width={30}
         height={30}
         className="cursor-pointer"
+        onClick={async () => {
+          window.location.href =
+            'https://dev.harmonichub.co.kr/api/v1/auth/kakao';
+        }}
       />
     </div>
   );
