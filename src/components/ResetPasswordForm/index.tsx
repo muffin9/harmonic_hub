@@ -3,30 +3,23 @@
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { SocialLoginButtons } from '../SocialLoginButtons';
 import {
-  defaultRegister,
+  resetPassword,
   validateAuthCheckEmail,
   validateAuthReqEmail,
 } from '@/api/auth';
 import { useToast } from '@/hooks/use-toast';
 
-interface SignupFormProps {
-  signupCallbackFunc: () => void;
+interface ResetPasswordFormProps {
+  resetPasswordCallbackFunc: () => void;
 }
 
-export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
+export default function ResetPasswordForm({
+  resetPasswordCallbackFunc,
+}: ResetPasswordFormProps) {
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);
-  const [agreements, setAgreements] = useState({
-    over14: false,
-    terms: false,
-    marketing: false,
-    sms: false,
-  });
-  const [password, setPassword] = useState('');
   const [showCodeInput, setShowCodeInput] = useState(false);
   const [authCode, setAuthCode] = useState('');
   const [isEmailLoading, setIsEmailLoading] = useState(false);
@@ -34,7 +27,11 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
   const [timer, setTimer] = useState(599); // 9분59초
   const [isResending, setIsResending] = useState(false);
   const [isCodeVerified, setIsCodeVerified] = useState(false);
+  const [showPasswordInput, setShowPasswordInput] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
 
   // 인증코드 타이머
   useEffect(() => {
@@ -57,16 +54,10 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
     setIsEmailValid(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value));
   };
 
-  const isFormValid = agreements.over14 && agreements.terms;
-
   const validateEmail = async () => {
     if (isEmailLoading) return;
     setIsEmailLoading(true);
-    toast({
-      title: '이메일을 확인해주세요.',
-      variant: 'default',
-    });
-    const data = await validateAuthReqEmail(email, 'signup');
+    const data = await validateAuthReqEmail(email, 'reset-password');
     if (data.success === true) {
       toast({
         title: data.message,
@@ -86,7 +77,11 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
   };
 
   const handleCodeCheck = async () => {
-    const data = await validateAuthCheckEmail(email, authCode, 'signup');
+    const data = await validateAuthCheckEmail(
+      email,
+      authCode,
+      'reset-password',
+    );
     if (data.success) {
       toast({
         title: data.message,
@@ -95,6 +90,7 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
       });
       setCodeError('');
       setIsCodeVerified(true);
+      setShowPasswordInput(true);
     } else {
       setCodeError('올바른 인증코드가 아닙니다.');
       setIsCodeVerified(false);
@@ -106,7 +102,7 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
     setTimer(599);
     setCodeError('');
 
-    const data = await validateAuthReqEmail(email, 'signup');
+    const data = await validateAuthReqEmail(email, 'reset-password');
 
     if (data.success === true) {
       toast({
@@ -121,6 +117,7 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
         duration: 1000,
       });
     }
+    setIsResending(false);
   };
 
   function validatePassword(pw: string) {
@@ -130,8 +127,8 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
     return regex.test(pw);
   }
 
-  const handlePasswordChange = (value: string) => {
-    setPassword(value);
+  const handleNewPasswordChange = (value: string) => {
+    setNewPassword(value);
     if (!validatePassword(value)) {
       setPasswordError(
         '8~15자 영문 대소문자, 숫자, 특수문자를 모두 포함해야 합니다.',
@@ -141,21 +138,42 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
     }
   };
 
-  const handleSignUp = async () => {
-    if (!validatePassword(password)) {
+  const handleConfirmPasswordChange = (value: string) => {
+    setConfirmPassword(value);
+    if (value !== newPassword) {
+      setConfirmPasswordError('비밀번호가 일치하지 않습니다.');
+    } else {
+      setConfirmPasswordError('');
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!validatePassword(newPassword)) {
       setPasswordError(
         '8~15자 영문 대소문자, 숫자, 특수문자를 모두 포함해야 합니다.',
       );
       return;
     }
-    const data = await defaultRegister(email, password);
+    if (newPassword !== confirmPassword) {
+      setConfirmPasswordError('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    const data = await resetPassword(email, newPassword, confirmPassword);
+
     if (data.success) {
       toast({
         title: data.message,
         variant: 'default',
-        duration: 1000,
+        duration: 2000,
       });
-      signupCallbackFunc();
+      resetPasswordCallbackFunc();
+    } else {
+      toast({
+        title: data.message,
+        variant: 'destructive',
+        duration: 2000,
+      });
     }
   };
 
@@ -163,14 +181,13 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
     <div className="w-full space-y-6">
       <div className="space-y-2">
         <div className="flex flex-col gap-4">
-          <label className="text-sm font-medium">일반가입</label>
+          <label className="text-sm font-medium">이메일 입력</label>
           <div className="flex items-center">
             <Input
               placeholder="이메일 입력"
               value={email}
               onChange={(e) => handleEmailChange(e.target.value)}
             />
-
             {isEmailValid && <span className="text-green-500 text-sm">✔</span>}
           </div>
         </div>
@@ -182,6 +199,7 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
         >
           {isEmailLoading ? '인증 요청 중...' : '이메일 인증'}
         </Button>
+
         {showCodeInput && (
           <div className="mt-4 p-6 rounded-xl bg-purple-100 flex flex-col items-center space-y-2 animate-fade-in">
             <div className="w-full text-center text-lg font-medium mb-2">
@@ -223,97 +241,57 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
             </button>
           </div>
         )}
-        <Input
-          type="password"
-          placeholder="비밀번호 입력"
-          value={password}
-          onChange={(e) => handlePasswordChange(e.target.value)}
-          className="mt-2"
-        />
-        {passwordError ? (
-          <div className="text-xs text-red-500 mt-1">{passwordError}</div>
-        ) : (
-          password.length >= 8 && (
-            <div className="text-xs text-green-600 mt-1">
-              올바른 비밀번호입니다.
+
+        {showPasswordInput && (
+          <div className="mt-4 space-y-4 animate-fade-in">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">새 비밀번호</label>
+              <Input
+                type="password"
+                placeholder="새 비밀번호 입력"
+                value={newPassword}
+                onChange={(e) => handleNewPasswordChange(e.target.value)}
+              />
+              {passwordError ? (
+                <div className="text-xs text-red-500 mt-1">{passwordError}</div>
+              ) : (
+                newPassword.length >= 8 && (
+                  <div className="text-xs text-green-600 mt-1">
+                    올바른 비밀번호입니다.
+                  </div>
+                )
+              )}
             </div>
-          )
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">새 비밀번호 확인</label>
+              <Input
+                type="password"
+                placeholder="새 비밀번호 재입력"
+                value={confirmPassword}
+                onChange={(e) => handleConfirmPasswordChange(e.target.value)}
+              />
+              {confirmPasswordError && (
+                <div className="text-xs text-red-500 mt-1">
+                  {confirmPasswordError}
+                </div>
+              )}
+            </div>
+          </div>
         )}
       </div>
 
-      <div className="border p-4 rounded-md space-y-2 text-sm">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            checked={Object.values(agreements).every(Boolean)}
-            onCheckedChange={(checked) => {
-              const val = Boolean(checked);
-              setAgreements({
-                over14: val,
-                terms: val,
-                marketing: val,
-                sms: val,
-              });
-            }}
-          />
-          <label>전체동의</label>
-        </div>
-
-        <div className="pl-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <Checkbox
-              checked={agreements.over14}
-              onCheckedChange={(checked) =>
-                setAgreements({ ...agreements, over14: Boolean(checked) })
-              }
-            />
-            <span>
-              만 14세 이상입니다. <span className="text-red-500">(필수)</span>
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              checked={agreements.terms}
-              onCheckedChange={(checked) =>
-                setAgreements({ ...agreements, terms: Boolean(checked) })
-              }
-            />
-            <span>
-              이용약관 <span className="text-red-500">(필수)</span>
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              checked={agreements.marketing}
-              onCheckedChange={(checked) =>
-                setAgreements({ ...agreements, marketing: Boolean(checked) })
-              }
-            />
-            <span>개인정보 마케팅 활용 동의 (선택)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              checked={agreements.sms}
-              onCheckedChange={(checked) =>
-                setAgreements({ ...agreements, sms: Boolean(checked) })
-              }
-            />
-            <span>이벤트, 메일 및 SMS 수신 동의 (선택)</span>
-          </div>
-        </div>
-      </div>
-
-      <Button
-        disabled={!isFormValid || !isCodeVerified}
-        className="w-full cursor-pointer"
-        onClick={handleSignUp}
-      >
-        회원가입하기
-      </Button>
-
-      <div className="font-bold text-center text-sm text-primary">
-        간편 가입
-      </div>
-      <SocialLoginButtons />
+      {showPasswordInput && (
+        <Button
+          disabled={
+            !validatePassword(newPassword) || newPassword !== confirmPassword
+          }
+          className="w-full cursor-pointer"
+          onClick={handleResetPassword}
+        >
+          비밀번호 재설정
+        </Button>
+      )}
     </div>
   );
 }
