@@ -57,7 +57,7 @@ export default function ResetPasswordForm({
   const validateEmail = async () => {
     if (isEmailLoading) return;
     setIsEmailLoading(true);
-    const data = await validateAuthReqEmail(email, 'reset-password');
+    const data = await validateAuthReqEmail(email, 'reset');
     if (data.success === true) {
       toast({
         title: data.message,
