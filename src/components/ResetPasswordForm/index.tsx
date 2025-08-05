@@ -98,7 +98,7 @@ export default function ResetPasswordForm({
     setTimer(599);
     setCodeError('');
 
-    const data = await validateAuthReqEmail(email, 'reset-password');
+    const data = await validateAuthReqEmail(email, 'reset');
 
     if (data.success === true) {
       toast({
@@ -189,7 +189,7 @@ export default function ResetPasswordForm({
         </div>
         <Button
           variant="default"
-          className="mt-8 w-full bg-purple-300 cursor-pointer"
+          className="mt-8 w-full bg-purple-300 cursor-pointer text-white"
           onClick={validateEmail}
           disabled={!isEmailValid || isEmailLoading}
         >
@@ -229,7 +229,7 @@ export default function ResetPasswordForm({
             </button>
             <button
               type="button"
-              className="w-full mt-4 py-3 rounded-full bg-purple-300 text-white font-semibold text-base disabled:opacity-50 cursor-pointer"
+              className="w-full mt-4 py-3 rounded-full bg-purple-300 hover:bg-purple-400 text-white font-semibold text-base disabled:opacity-50 cursor-pointer transition-colors duration-200"
               onClick={handleCodeCheck}
               disabled={authCode.length !== 6}
             >

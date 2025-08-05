@@ -176,7 +176,7 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
         </div>
         <Button
           variant="default"
-          className="mt-8 w-full bg-purple-300 cursor-pointer"
+          className="mt-8 w-full bg-purple-300 cursor-pointer text-white"
           onClick={validateEmail}
           disabled={!isEmailValid || isEmailLoading}
         >
