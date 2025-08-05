@@ -1,10 +1,10 @@
 'use client';
 
-import Link from 'next/link';
 import React, { useState } from 'react';
 import { SocialLoginButtons } from '../SocialLoginButtons';
 import { defaultLogin } from '@/api/auth';
 import { useToast } from '@/hooks/use-toast';
+import { setTokens, setUser } from '@/lib/auth';
 
 interface LoginFormProps {
   loginCallbackFunc: () => void;
@@ -26,13 +26,12 @@ const LoginForm = ({
   const handleLogin = async () => {
     const data = await defaultLogin(email, password);
 
-    if (data.statusCode === 200) {
-      toast({
-        title: '로그인 성공',
-        variant: 'default',
-        duration: 1000,
-      });
+    if (data.user && data.access_token && data.refresh_token) {
+      setTokens(data.access_token, data.refresh_token);
+      setUser(data.user);
+      toast({ title: '로그인 성공', variant: 'default', duration: 1000 });
       loginCallbackFunc();
+      return;
     } else if (data.statusCode === 401) {
       toast({
         title: data.message,

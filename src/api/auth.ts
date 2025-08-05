@@ -1,3 +1,12 @@
+import {
+  createAuthHeaders,
+  getAccessToken,
+  getRefreshToken,
+  setTokens,
+  logout,
+  isTokenExpired,
+} from '@/lib/auth';
+
 export const validateAuthReqEmail = async (email: string, type: string) => {
   try {
     const content = { email: email, type: type };
@@ -141,3 +150,54 @@ export const resetPassword = async (
     console.error('reset password error', error);
   }
 };
+
+let inFlightRefresh: Promise<string | null> | null = null;
+
+async function refreshIfNeeded() {
+  const access = getAccessToken();
+  if (access && !isTokenExpired(access)) return access;
+
+  if (!inFlightRefresh) {
+    inFlightRefresh = (async () => {
+      const refresh = getRefreshToken();
+      if (!refresh) return null;
+
+      const res = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: refresh }),
+      });
+      if (!res.ok) return null;
+
+      const { access_token: newAcc, refresh_token: newRef } = await res.json();
+      if (newAcc && newRef) {
+        setTokens(newAcc, newRef);
+        return newAcc;
+      }
+      return null;
+    })().finally(() => (inFlightRefresh = null));
+  }
+  return inFlightRefresh;
+}
+
+export async function apiAuthFetch(input: RequestInfo, init: RequestInit = {}) {
+  // 1차 시도
+  const headers = { ...(init.headers || {}), ...createAuthHeaders() };
+  let res = await fetch(input, { ...init, headers });
+
+  // 401이면 토큰 갱신 시도
+  if (res.status === 401) {
+    const newAccess = await refreshIfNeeded();
+    if (!newAccess) {
+      logout();
+      throw new Error('세션 만료');
+    }
+    const retryHeaders = {
+      ...(init.headers || {}),
+      'Content-Type': 'application/json',
+      Authorization: `bearer ${newAccess}`,
+    };
+    res = await fetch(input, { ...init, headers: retryHeaders });
+  }
+  return res;
+}
