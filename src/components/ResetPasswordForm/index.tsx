@@ -77,11 +77,7 @@ export default function ResetPasswordForm({
   };
 
   const handleCodeCheck = async () => {
-    const data = await validateAuthCheckEmail(
-      email,
-      authCode,
-      'reset-password',
-    );
+    const data = await validateAuthCheckEmail(email, authCode, 'reset');
     if (data.success) {
       toast({
         title: data.message,

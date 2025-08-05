@@ -49,7 +49,7 @@ function LoginCallbackContent() {
         });
 
         // 메인 페이지로 리다이렉트
-        router.push('/demo');
+        router.push('/');
       } catch (error) {
         console.error('Login callback error:', error);
         toast({
