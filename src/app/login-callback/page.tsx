@@ -28,22 +28,22 @@ function LoginCallbackContent() {
         // URL 파라미터에서 토큰 정보 추출
         const accessToken = searchParams.get('access_token');
         const refreshToken = searchParams.get('refresh_token');
-        const userData = searchParams.get('user');
+        // const userData = searchParams.get('user');
 
-        if (!accessToken || !refreshToken || !userData) {
+        if (!accessToken || !refreshToken) {
           throw new Error('로그인 정보가 누락되었습니다.');
         }
 
         // 유저 정보 파싱
-        const user = JSON.parse(decodeURIComponent(userData));
+        // const user = JSON.parse(decodeURIComponent(userData));
 
         // 토큰과 유저 정보를 안전하게 저장
         setTokens(accessToken, refreshToken);
-        setUser(user);
+        // setUser(user);
 
         toast({
           title: '로그인 성공',
-          description: `${user.name}님 환영합니다!`,
+          // description: `${user.name}님 환영합니다!`,
           variant: 'default',
           duration: 2000,
         });
