@@ -20,9 +20,14 @@ import {
 } from '@/components/ui/dialog';
 import LoginForm from '../LoginForm';
 import ResetPasswordForm from '../ResetPasswordForm';
+import MusicPreferenceForm from '../MusicPreferenceForm';
 import { getUser, isAuthenticated, logout } from '@/lib/auth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu } from 'lucide-react';
+import { getUserInfo } from '@/api/users';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { getMusicCategories } from '@/api/category';
+import { useMusicStore } from '@/stores/music-store';
 
 type AppUser = {
   id: string;
@@ -32,26 +37,63 @@ type AppUser = {
   authProvider: string;
 };
 
-const categories = ['All', 'Jazz', 'Pop&Rock', 'EDM', 'K-pop', '기타'];
+interface MusicCategory {
+  id: number;
+  nameKo: string;
+  nameEn: string;
+  slug: string;
+  isActive: boolean;
+}
 
 const Header = () => {
-  const [authed, setAuthed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
   const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
   const [isMyInfoOpen, setIsMyInfoOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [isMusicPreferenceOpen, setIsMusicPreferenceOpen] = useState(false);
+
+  // Zustand 스토어에서 음악 상태 가져오기
+  const {
+    selectedCategory,
+    setSelectedCategory,
+    categories: musicCategories,
+    isCategoriesLoading,
+    setCategories,
+    setCategoriesLoading,
+  } = useMusicStore();
 
   const loadUser = useCallback(() => {
     const ok = isAuthenticated();
-    setAuthed(ok);
-    setUser(ok ? getUser() : null);
+    if (ok) {
+      const currentUser = getUser();
+      setUser(currentUser);
+    } else {
+      setUser(null);
+    }
+    setIsLoading(false);
   }, []);
+
+  const loadMusicCategories = useCallback(async () => {
+    try {
+      setCategoriesLoading(true);
+      const categories = await getMusicCategories();
+      if (categories && Array.isArray(categories)) {
+        setCategories(categories);
+      }
+    } catch (error) {
+      console.error('Failed to load music categories:', error);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  }, [setCategories, setCategoriesLoading]);
 
   useEffect(() => {
     loadUser();
+    loadMusicCategories();
     // 다른 탭/창에서 로그인/로그아웃 시 동기화
     const onStorage = (e: StorageEvent) => {
       if (e.key === 'access_token' || e.key === 'user' || e.key === null) {
@@ -60,13 +102,22 @@ const Header = () => {
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
-  }, [loadUser]);
+  }, [loadUser, loadMusicCategories]);
 
   const onLogout = () => {
     logout();
-    setAuthed(false);
     setUser(null);
     setMenuOpen(false);
+  };
+
+  const handleGetUser = async () => {
+    const userInfo = await getUserInfo();
+
+    if (userInfo && 'id' in userInfo) {
+      setUser(userInfo);
+    } else {
+      setUser(null);
+    }
   };
 
   const handleSignup = () => {
@@ -76,10 +127,7 @@ const Header = () => {
 
   const handleLogin = () => {
     setIsLoginOpen(false);
-    // 로그인 성공 후 유저 정보 업데이트
-    const currentUser = getUser();
-    setUser(currentUser);
-    setAuthed(!!currentUser);
+    handleGetUser();
   };
 
   const handleSwitchToSignup = () => {
@@ -94,7 +142,10 @@ const Header = () => {
 
   return (
     <>
-      <header className="w-full bg-gradient-to-b from-primary to-white border-b border-primary">
+      <header
+        className="w-full h-[238px] relative bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: 'url(/header_bg.png)' }}
+      >
         <div className="max-w-7xl mx-auto flex items-center justify-between py-4 px-6">
           <Link href="/demo">
             <div className="flex gap-2 items-center">
@@ -109,8 +160,12 @@ const Header = () => {
           </Link>
 
           <div className="flex items-center gap-3">
-            {authed && user ? (
-              <>
+            {isLoading ? (
+              // 로딩 중일 때 스켈레톤 UI
+              <LoadingSkeleton variant="header" />
+            ) : user ? (
+              // 로그인된 상태
+              <div className="flex items-center gap-3">
                 <span className="hidden sm:inline text-sm text-gray-700">
                   {user.email}
                 </span>
@@ -157,16 +212,17 @@ const Header = () => {
                                 setMenuOpen(false);
                                 setIsMyInfoOpen(true);
                               }}
-                              className="p-4"
+                              className="p-4 cursor-pointer"
                             >
                               내정보
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuItem
                             onClick={() => {
-                              alert('서비스 준비중입니다..');
+                              setMenuOpen(false);
+                              setIsMusicPreferenceOpen(true);
                             }}
-                            className="p-4"
+                            className="p-4 cursor-pointer"
                           >
                             상세설정
                           </DropdownMenuItem>
@@ -175,7 +231,7 @@ const Header = () => {
                     )}
                   </AnimatePresence>
                 </DropdownMenu>
-              </>
+              </div>
             ) : (
               // 비로그인 상태
               <>
@@ -196,30 +252,44 @@ const Header = () => {
           </div>
         </div>
 
-        <div className="text-center py-10">
+        <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-center">
           <div className="text-2xl md:text-3xl font-semibold text-purple-700 flex justify-center items-center gap-2">
             <span role="img" aria-label="music">
               🎼
             </span>
             음악은 즐거우려고 배우잖아요,
           </div>
-          <p className="mt-2 text-gray-600 text-base md:text-lg">
+          <p className="mt-2 text-[#9575AD] text-base md:text-2xl">
             당신의 연습을 연주하듯 학습해 보세요.
           </p>
         </div>
 
-        {/* Category Tabs */}
-        <div className="flex justify-center space-x-6 pb-4 text-sm md:text-base font-medium">
-          {categories.map((cat, idx) => (
-            <button
-              key={idx}
-              className={`${
-                cat === 'All' ? 'text-purple-500' : 'text-gray-700'
-              } hover:text-purple-700 cursor-pointer`}
-            >
-              {cat}
-            </button>
-          ))}
+        {/* 음악 카테고리 탭 */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex justify-center space-x-6 text-sm md:text-base font-medium">
+          {isCategoriesLoading ? (
+            <div className="flex space-x-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div
+                  key={i}
+                  className="w-16 h-4 bg-gray-200 rounded animate-pulse"
+                />
+              ))}
+            </div>
+          ) : (
+            musicCategories.map((category) => (
+              <button
+                key={category.id}
+                className={`${
+                  selectedCategory === category.nameEn
+                    ? 'text-purple-500'
+                    : 'text-gray-700'
+                } hover:text-purple-700 cursor-pointer`}
+                onClick={() => setSelectedCategory(category.nameEn)}
+              >
+                {category.nameEn}
+              </button>
+            ))
+          )}
         </div>
       </header>
 
@@ -251,10 +321,7 @@ const Header = () => {
             <DialogTitle className="text-center">비밀번호 재설정</DialogTitle>
           </DialogHeader>
           <ResetPasswordForm
-            resetPasswordCallbackFunc={() => {
-              setIsResetPasswordOpen(false);
-              setIsLoginOpen(true);
-            }}
+            resetPasswordCallbackFunc={handleSwitchToResetPassword}
           />
         </DialogContent>
       </Dialog>
@@ -292,6 +359,25 @@ const Header = () => {
               </div>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isMusicPreferenceOpen}
+        onOpenChange={setIsMusicPreferenceOpen}
+      >
+        <DialogContent className="sm:max-w-2xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="py-2 text-lg font-semibold text-purple-600">
+              상세설정
+            </DialogTitle>
+          </DialogHeader>
+          <MusicPreferenceForm
+            onComplete={() => {
+              setIsMusicPreferenceOpen(false);
+              // TODO: 완료 후 처리 (예: 토스트 메시지)
+            }}
+          />
         </DialogContent>
       </Dialog>
     </>

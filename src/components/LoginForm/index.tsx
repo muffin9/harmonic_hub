@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { SocialLoginButtons } from '../SocialLoginButtons';
 import { defaultLogin } from '@/api/auth';
 import { useToast } from '@/hooks/use-toast';
-import { setTokens, setUser } from '@/lib/auth';
+import { setTokens } from '@/lib/auth';
 
 interface LoginFormProps {
   loginCallbackFunc: () => void;
@@ -24,20 +24,14 @@ const LoginForm = ({
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
-    const data = await defaultLogin(email, password);
+    const { access_token, refresh_token } = await defaultLogin(email, password);
 
-    if (data.user && data.access_token && data.refresh_token) {
-      setTokens(data.access_token, data.refresh_token);
-      setUser(data.user);
+    if (access_token && refresh_token) {
+      setTokens(access_token, refresh_token);
+
       toast({ title: '로그인 성공', variant: 'default', duration: 1000 });
       loginCallbackFunc();
       return;
-    } else if (data.statusCode === 401) {
-      toast({
-        title: data.message,
-        variant: 'destructive',
-        duration: 1000,
-      });
     }
   };
 
