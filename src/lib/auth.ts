@@ -1,50 +1,81 @@
 // 토큰 관리
 export const setTokens = (accessToken: string, refreshToken: string) => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('access_token', accessToken);
-    localStorage.setItem('refresh_token', refreshToken);
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      localStorage.setItem('access_token', accessToken);
+      localStorage.setItem('refresh_token', refreshToken);
+    } catch (error) {
+      console.error('Failed to set tokens:', error);
+    }
   }
 };
 
 export const getAccessToken = (): string | null => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('access_token');
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      return localStorage.getItem('access_token');
+    } catch (error) {
+      console.error('Failed to get access token:', error);
+      return null;
+    }
   }
   return null;
 };
 
 export const getRefreshToken = (): string | null => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('refresh_token');
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      return localStorage.getItem('refresh_token');
+    } catch (error) {
+      console.error('Failed to get refresh token:', error);
+      return null;
+    }
   }
   return null;
 };
 
 export const removeTokens = () => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+    } catch (error) {
+      console.error('Failed to remove tokens:', error);
+    }
   }
 };
 
 // 유저 정보 관리
 export const setUser = (user: any) => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('user', JSON.stringify(user));
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      localStorage.setItem('user', JSON.stringify(user));
+    } catch (error) {
+      console.error('Failed to set user:', error);
+    }
   }
 };
 
 export const getUser = (): any | null => {
-  if (typeof window !== 'undefined') {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const userStr = localStorage.getItem('user');
+      return userStr ? JSON.parse(userStr) : null;
+    } catch (error) {
+      console.error('Failed to get user:', error);
+      return null;
+    }
   }
   return null;
 };
 
 export const removeUser = () => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('user');
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      localStorage.removeItem('user');
+    } catch (error) {
+      console.error('Failed to remove user:', error);
+    }
   }
 };
 
@@ -62,7 +93,7 @@ export const createAuthHeaders = (): HeadersInit => {
   const token = getAccessToken();
   return {
     'Content-Type': 'application/json',
-    ...(token && { Authorization: `bearer ${token}` }),
+    ...(token && { Authorization: `Bearer ${token}` }),
   };
 };
 

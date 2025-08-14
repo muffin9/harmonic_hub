@@ -3,18 +3,9 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { setTokens, setUser } from '@/lib/auth';
-
-interface LoginResponse {
-  access_token: string;
-  refresh_token: string;
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    profile_image?: string;
-  };
-}
+import { setTokens } from '@/lib/auth';
+import { getUserInfo } from '@/api/users';
+import { setUser } from '@/lib/auth';
 
 function LoginCallbackContent() {
   const router = useRouter();
@@ -28,22 +19,21 @@ function LoginCallbackContent() {
         // URL 파라미터에서 토큰 정보 추출
         const accessToken = searchParams.get('access_token');
         const refreshToken = searchParams.get('refresh_token');
-        // const userData = searchParams.get('user');
 
         if (!accessToken || !refreshToken) {
           throw new Error('로그인 정보가 누락되었습니다.');
         }
 
-        // 유저 정보 파싱
-        // const user = JSON.parse(decodeURIComponent(userData));
-
         // 토큰과 유저 정보를 안전하게 저장
         setTokens(accessToken, refreshToken);
-        // setUser(user);
+        const userInfo = await getUserInfo();
+
+        if (userInfo) {
+          setUser(userInfo);
+        }
 
         toast({
           title: '로그인 성공',
-          // description: `${user.name}님 환영합니다!`,
           variant: 'default',
           duration: 2000,
         });

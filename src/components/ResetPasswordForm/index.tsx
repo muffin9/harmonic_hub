@@ -9,6 +9,7 @@ import {
   validateAuthReqEmail,
 } from '@/api/auth';
 import { useToast } from '@/hooks/use-toast';
+import { getUser } from '@/lib/auth';
 
 interface ResetPasswordFormProps {
   resetPasswordCallbackFunc: () => void;
@@ -32,6 +33,15 @@ export default function ResetPasswordForm({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
+
+  // 컴포넌트 마운트 시 로그인된 유저 정보 확인
+  useEffect(() => {
+    const currentUser = getUser();
+    if (currentUser?.email) {
+      setEmail(currentUser.email);
+      setIsEmailValid(true);
+    }
+  }, []);
 
   // 인증코드 타이머
   useEffect(() => {
