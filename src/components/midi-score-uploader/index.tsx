@@ -5,119 +5,6 @@ import { OpenSheetMusicDisplay } from 'opensheetmusicdisplay';
 import { Button } from '../ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mp3Player } from './mp3-player';
-import Image from 'next/image';
-
-const subGenres = ['Bossanova', 'Swing', 'Shupple', 'Blues'];
-const scales = [
-  {
-    name: 'Harmonic Minor Scale',
-    value: 'harmonic',
-    imageUrl: '/score/uphill_road1.png',
-  },
-  {
-    name: 'Dorian Mode Scale',
-    value: 'dorian',
-    imageUrl: '/score/uphill_road2.png',
-  },
-  {
-    name: 'Phrygian Mode Scale',
-    value: 'phrygian',
-    imageUrl: '/score/uphill_road1.png',
-  },
-];
-
-function MusicScales() {
-  const [selectedScale, setSelectedScale] = useState('dorian');
-  const [tempo, setTempo] = useState(120);
-
-  return (
-    <div className="flex flex-col bg-white">
-      {/* Subgenre Buttons */}
-      <div className="flex justify-center gap-3 py-3">
-        {subGenres.map((genre) => (
-          <Button
-            key={genre}
-            className="px-4 py-1 rounded-full border bg-white border-purple-500 text-purple-600 hover:bg-purple-100 cursor-pointer"
-          >
-            {genre}
-          </Button>
-        ))}
-      </div>
-
-      <div className="flex flex-1">
-        {/* Sidebar: Scale Selection */}
-        <div className="w-1/4 border-r px-4 py-6">
-          <h2 className="text-lg font-bold text-purple-600 mb-4">
-            스케일 선택
-          </h2>
-          <ul className="space-y-2">
-            {scales.map((scale) => (
-              <li
-                key={scale.value}
-                className={`cursor-pointer ${
-                  selectedScale === scale.value
-                    ? 'text-purple-700 font-bold'
-                    : ''
-                }`}
-                onClick={() => setSelectedScale(scale.value)}
-              >
-                {scale.name}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Main: Score Image */}
-        <div className="flex-1 flex flex-col items-center justify-start p-4">
-          <h3 className="text-xl font-semibold mb-2">
-            {scales.find((scale) => scale.value === selectedScale)?.name ||
-              'Swing - 12 Natural Minor Scales'}
-          </h3>
-          <div className="w-full max-w-3xl shadow border">
-            <Image
-              src={
-                scales.find((scale) => scale.value === selectedScale)
-                  ?.imageUrl || '/score/uphill_road1.png'
-              }
-              alt="악보 이미지"
-              width={800}
-              height={1200}
-              className="w-full"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Controls */}
-      <div className="flex justify-center items-center gap-4 border-t py-3 bg-purple-100">
-        <button
-          className="bg-purple-600 text-white px-4 py-1 rounded cursor-pointer"
-          onClick={() => alert('서비스 준비중입니다.')}
-        >
-          ▶︎
-        </button>
-        <Button
-          className="px-4 py-1 border rounded cursor-pointer"
-          onClick={() => alert('서비스 준비중입니다.')}
-        >
-          키 변경
-        </Button>
-        <Button
-          onClick={() => alert('아래 MP3 파일 플레이어를 이용해주세요.')}
-          className="cursor-pointer"
-        >
-          템포: {tempo}
-        </Button>
-        <Button
-          className="px-4 py-1 border rounded cursor-pointer"
-          onClick={() => alert('서비스 준비중입니다.')}
-        >
-          메트로놈
-        </Button>
-      </div>
-    </div>
-  );
-}
 
 export function MusicXmlScoreUploader() {
   const [error, setError] = useState<string | null>(null);
@@ -232,7 +119,7 @@ export function MusicXmlScoreUploader() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="text-red-500 font-medium"
+            className="text-blue-600 font-medium"
           >
             {error}
           </motion.div>
@@ -247,8 +134,7 @@ export function MusicXmlScoreUploader() {
 
 export function ScoreAndMp3Section() {
   return (
-    <div className="w-full min-h-screen py-16 px-2 flex flex-col items-center gap-16">
-      <MusicScales />
+    <div className="w-full py-16 px-2 flex flex-col items-center gap-16">
       <Mp3Player />
     </div>
   );

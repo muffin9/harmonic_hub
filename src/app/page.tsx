@@ -3,6 +3,7 @@
 import { ScoreAndMp3Section } from '@/components/midi-score-uploader';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import MusicMainContent from '@/components/MusicMainContent';
 import { Toaster } from '@/components/ui/toaster';
 import { useEffect } from 'react';
 import { getRefreshToken } from '@/lib/auth';
@@ -27,6 +28,7 @@ export default function HomePage() {
     <main className="min-h-screen flex flex-col items-center justify-center">
       <div className="w-full">
         <Header />
+        <MusicMainContent />
         <ScoreAndMp3Section />
         <Footer />
       </div>
