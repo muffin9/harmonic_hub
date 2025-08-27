@@ -162,13 +162,21 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
   return (
     <div className="w-full space-y-6">
       <div className="space-y-2">
+        <div className="flex items-center gap-4 py-2">
+          <span className="font-bold text-center text-sm text-[#6A35A0]">
+            간편 가입
+          </span>
+          <SocialLoginButtons />
+        </div>
+
         <div className="flex flex-col gap-4">
-          <label className="text-sm font-medium">일반가입</label>
+          <label className="font-bold text-sm text-[#6A35A0]">일반가입</label>
           <div className="flex items-center">
-            <Input
+            <input
               placeholder="이메일 입력"
               value={email}
               onChange={(e) => handleEmailChange(e.target.value)}
+              className="w-full border-b border-purple-300 focus:outline-none focus:border-purple-500 py-2 placeholder-gray-400"
             />
 
             {isEmailValid && <span className="text-green-500 text-sm">✔</span>}
@@ -223,12 +231,12 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
             </button>
           </div>
         )}
-        <Input
+        <input
           type="password"
           placeholder="비밀번호 입력"
           value={password}
           onChange={(e) => handlePasswordChange(e.target.value)}
-          className="mt-2"
+          className="w-full border-b border-purple-300 focus:outline-none focus:border-purple-500 py-2 placeholder-gray-400"
         />
         {passwordError ? (
           <div className="text-xs text-red-500 mt-1">{passwordError}</div>
@@ -309,11 +317,6 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
       >
         회원가입하기
       </Button>
-
-      <div className="font-bold text-center text-sm text-primary">
-        간편 가입
-      </div>
-      <SocialLoginButtons />
     </div>
   );
 }

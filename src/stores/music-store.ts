@@ -25,8 +25,8 @@ export interface Scale {
 
 interface MusicState {
   // 상태
-  selectedCategory: string;
-  selectedSubGenre: string;
+  selectedCategory: number;
+  selectedSubGenre: number;
   selectedScale: string;
   tempo: number;
   categories: MusicCategory[];
@@ -39,8 +39,8 @@ interface MusicState {
   isScalesLoading: boolean;
 
   // 액션
-  setSelectedCategory: (category: string) => void;
-  setSelectedSubGenre: (subGenre: string) => void;
+  setSelectedCategory: (category: number) => void;
+  setSelectedSubGenre: (subGenre: number) => void;
   setSelectedScale: (scale: string) => void;
   setTempo: (tempo: number) => void;
   setCategories: (categories: MusicCategory[]) => void;
@@ -55,8 +55,8 @@ interface MusicState {
 }
 
 const initialState = {
-  selectedCategory: 'All',
-  selectedSubGenre: 'Bossanova',
+  selectedCategory: 0,
+  selectedSubGenre: 0,
   selectedScale: 'dorian',
   tempo: 120,
   categories: [],
@@ -70,16 +70,16 @@ const initialState = {
 export const useMusicStore = create<MusicState>((set, get) => ({
   ...initialState,
 
-  setSelectedCategory: (category: string) => {
+  setSelectedCategory: (category: number) => {
     set({ selectedCategory: category });
     // 카테고리가 변경되면 관련 서브장르와 스케일도 초기화
     set({
-      selectedSubGenre: 'Bossanova',
+      selectedSubGenre: 0,
       selectedScale: 'dorian',
     });
   },
 
-  setSelectedSubGenre: (subGenre: string) => {
+  setSelectedSubGenre: (subGenre: number) => {
     set({ selectedSubGenre: subGenre });
   },
 
@@ -95,7 +95,7 @@ export const useMusicStore = create<MusicState>((set, get) => ({
     set({ categories });
     // 첫 번째 카테고리를 기본 선택으로 설정
     if (categories.length > 0) {
-      set({ selectedCategory: categories[0].nameEn });
+      set({ selectedCategory: categories[0].id });
     }
   },
 
