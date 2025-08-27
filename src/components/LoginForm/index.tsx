@@ -5,6 +5,7 @@ import { SocialLoginButtons } from '../SocialLoginButtons';
 import { defaultLogin } from '@/api/auth';
 import { useToast } from '@/hooks/use-toast';
 import { setTokens } from '@/lib/auth';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface LoginFormProps {
   loginCallbackFunc: () => void;
@@ -67,14 +68,18 @@ const LoginForm = ({
             placeholder="비밀번호"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full border-b border-purple-300 focus:outline-none focus:border-purple-500 py-2 placeholder-gray-400"
+            className="w-full border-b border-purple-300 focus:outline-none focus:border-purple-500 py-2 placeholder-gray-400 pr-10"
           />
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
           >
-            👁
+            {showPassword ? (
+              <EyeOff className="h-5 w-5" />
+            ) : (
+              <Eye className="h-5 w-5" />
+            )}
           </button>
         </div>
 

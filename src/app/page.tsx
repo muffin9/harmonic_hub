@@ -1,9 +1,8 @@
 'use client';
-
-import { ScoreAndMp3Section } from '@/components/midi-score-uploader';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import MusicMainContent from '@/components/MusicMainContent';
+import Review from '@/components/Review';
 import { Toaster } from '@/components/ui/toaster';
 import { useEffect } from 'react';
 import { getRefreshToken } from '@/lib/auth';
@@ -29,8 +28,10 @@ export default function HomePage() {
       <div className="w-full">
         <Header />
         <MusicMainContent />
-        <ScoreAndMp3Section />
-        <Footer />
+        <div className="bg-gradient-to-b from-[#FFFFFF] to-primary">
+          <Review />
+          <Footer />
+        </div>
       </div>
       <Toaster />
     </main>

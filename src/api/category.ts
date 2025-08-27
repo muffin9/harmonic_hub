@@ -12,9 +12,9 @@ export const getMusicCategories = async () => {
   }
 };
 
-export const getSubGenres = async (big: string) => {
+export const getSubGenres = async (categoryId: number) => {
   try {
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/smalls?big=${big}`;
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/smalls?big=${categoryId}`;
 
     const response = await apiAuthFetch(url);
     const data = await response.json();
@@ -24,9 +24,9 @@ export const getSubGenres = async (big: string) => {
   }
 };
 
-export const getScales = async (big: string, small: string) => {
+export const getScales = async (categoryId: number, subGenreId: number) => {
   try {
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/scales?big=${big}&small=${small}`;
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/scales?big=${categoryId}&small=${subGenreId}`;
 
     const response = await apiAuthFetch(url);
     const data = await response.json();

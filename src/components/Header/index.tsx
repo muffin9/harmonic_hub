@@ -25,7 +25,6 @@ import { getUser, isAuthenticated, logout } from '@/lib/auth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu } from 'lucide-react';
 import { getUserInfo } from '@/api/users';
-import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { getMusicCategories } from '@/api/category';
 import { useMusicStore } from '@/stores/music-store';
 
@@ -48,7 +47,6 @@ interface MusicCategory {
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState<AppUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
@@ -61,7 +59,6 @@ const Header = () => {
     selectedCategory,
     setSelectedCategory,
     categories: musicCategories,
-    isCategoriesLoading,
     setCategories,
     setCategoriesLoading,
   } = useMusicStore();
@@ -74,7 +71,6 @@ const Header = () => {
     } else {
       setUser(null);
     }
-    setIsLoading(false);
   }, []);
 
   const loadMusicCategories = useCallback(async () => {
@@ -147,7 +143,7 @@ const Header = () => {
         style={{ backgroundImage: 'url(/header_bg.png)' }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between py-4 px-6">
-          <Link href="/demo">
+          <Link href="/">
             <div className="flex gap-2 items-center">
               <Image
                 src="/logo.svg"
@@ -155,15 +151,12 @@ const Header = () => {
                 width={32}
                 height={32}
               />
-              <h2 className="text-black font-bold">하모닉 허브</h2>
+              <h2 className="text-black font-bold">하모닉허브</h2>
             </div>
           </Link>
 
           <div className="flex items-center gap-3">
-            {isLoading ? (
-              // 로딩 중일 때 스켈레톤 UI
-              <LoadingSkeleton variant="header" />
-            ) : user ? (
+            {user ? (
               // 로그인된 상태
               <div className="flex items-center gap-3">
                 <span className="hidden sm:inline text-sm text-gray-700">
@@ -239,13 +232,13 @@ const Header = () => {
                   className="cursor-pointer bg-white text-black hover:bg-white/50 hover:text-black/50"
                   onClick={() => setIsLoginOpen(true)}
                 >
-                  Login
+                  로그인
                 </Button>
                 <Button
                   className="cursor-pointer bg-white text-black hover:bg-white/50 hover:text-black/50"
                   onClick={() => setIsSignUpOpen(true)}
                 >
-                  Sign up
+                  회원가입
                 </Button>
               </>
             )}
@@ -266,30 +259,19 @@ const Header = () => {
 
         {/* 음악 카테고리 탭 */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex justify-center space-x-6 text-sm md:text-base font-medium">
-          {isCategoriesLoading ? (
-            <div className="flex space-x-6">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div
-                  key={i}
-                  className="w-16 h-4 bg-gray-200 rounded animate-pulse"
-                />
-              ))}
-            </div>
-          ) : (
-            musicCategories.map((category) => (
-              <button
-                key={category.id}
-                className={`${
-                  selectedCategory === category.nameEn
-                    ? 'text-purple-500'
-                    : 'text-gray-700'
-                } hover:text-purple-700 cursor-pointer`}
-                onClick={() => setSelectedCategory(category.nameEn)}
-              >
-                {category.nameEn}
-              </button>
-            ))
-          )}
+          {musicCategories.map((category) => (
+            <button
+              key={category.id}
+              className={`${
+                selectedCategory === category.id
+                  ? 'text-purple-500'
+                  : 'text-gray-700'
+              } hover:text-purple-700 cursor-pointer`}
+              onClick={() => setSelectedCategory(category.id)}
+            >
+              {category.nameEn}
+            </button>
+          ))}
         </div>
       </header>
 
