@@ -157,74 +157,74 @@ const Header = () => {
 
           <div className="flex items-center gap-3">
             {user ? (
-              // 로그인된 상태
-              <div className="flex items-center gap-3">
-                <span className="hidden sm:inline text-sm text-gray-700">
-                  {user.email}
-                </span>
+              // 로그인된 상태 - 햄버거 메뉴만 표시
+              <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    aria-label="메뉴 열기"
+                    className="cursor-pointer p-2 rounded-md hover:bg-transparent transition-colors"
+                  >
+                    <Menu className="h-5 w-5 text-gray-700 hover:text-purple-600 transition-colors" />
+                  </button>
+                </DropdownMenuTrigger>
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onLogout}
-                  className="cursor-pointer bg-white text-black hover:bg-white/50 hover:text-black/50"
-                >
-                  로그아웃
-                </Button>
-
-                {/* 햄버거 드롭다운 */}
-                <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="메뉴 열기"
-                      className="cursor-pointer"
+                {/* framer-motion으로 애니메이션 */}
+                <AnimatePresence>
+                  {menuOpen && (
+                    <DropdownMenuContent
+                      align="end"
+                      className="w-56 p-0 overflow-hidden"
+                      asChild
                     >
-                      <Menu className="h-5 w-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-
-                  {/* framer-motion으로 애니메이션 */}
-                  <AnimatePresence>
-                    {menuOpen && (
-                      <DropdownMenuContent
-                        align="end"
-                        className="w-44 p-0 overflow-hidden"
-                        asChild
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.98, y: -4 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.98, y: -4 }}
+                        transition={{ duration: 0.12, ease: 'easeOut' }}
                       >
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.98, y: -4 }}
-                          animate={{ opacity: 1, scale: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.98, y: -4 }}
-                          transition={{ duration: 0.12, ease: 'easeOut' }}
-                        >
-                          {user?.authProvider === 'local' && (
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setMenuOpen(false);
-                                setIsMyInfoOpen(true);
-                              }}
-                              className="p-4 cursor-pointer"
-                            >
-                              내정보
-                            </DropdownMenuItem>
-                          )}
+                        {/* 이메일 표시 */}
+                        <div className="px-4 py-3 text-sm text-gray-700">
+                          {user?.email || '로그인 해주세요'}
+                        </div>
+
+                        <div className="w-[200px] h-[1px] bg-[#DAADCF] mx-auto my-1" />
+
+                        {/* 내 정보 - 로컬 계정만 */}
+                        {user?.authProvider === 'local' && (
                           <DropdownMenuItem
                             onClick={() => {
                               setMenuOpen(false);
-                              setIsMusicPreferenceOpen(true);
+                              setIsMyInfoOpen(true);
                             }}
-                            className="p-4 cursor-pointer"
+                            className="px-4 py-3 cursor-pointer"
                           >
-                            상세설정
+                            내 정보
                           </DropdownMenuItem>
-                        </motion.div>
-                      </DropdownMenuContent>
-                    )}
-                  </AnimatePresence>
-                </DropdownMenu>
-              </div>
+                        )}
+
+                        {/* 상세설정 */}
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setMenuOpen(false);
+                            setIsMusicPreferenceOpen(true);
+                          }}
+                          className="px-4 py-3 cursor-pointer hover:text-[#C891FF]"
+                        >
+                          상세설정
+                        </DropdownMenuItem>
+
+                        {/* 로그아웃 */}
+                        <DropdownMenuItem
+                          onClick={onLogout}
+                          className="px-4 py-3 cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          로그아웃
+                        </DropdownMenuItem>
+                      </motion.div>
+                    </DropdownMenuContent>
+                  )}
+                </AnimatePresence>
+              </DropdownMenu>
             ) : (
               // 비로그인 상태
               <>
