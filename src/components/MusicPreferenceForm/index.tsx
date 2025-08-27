@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import { patchUserSetting } from '@/api/users';
 
 interface MusicPreferenceFormProps {
   onComplete: () => void;
@@ -33,6 +34,7 @@ export default function MusicPreferenceForm({
 
   const [customInstrument, setCustomInstrument] = useState('');
   const [customGenre, setCustomGenre] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleGenreChange = (genreId: number, checked: boolean) => {
     if (checked) {
@@ -48,14 +50,65 @@ export default function MusicPreferenceForm({
     }
   };
 
-  const handleSubmit = () => {
-    // TODO: API 호출하여 데이터 저장
-    onComplete();
-    toast({
-      title: '서비스 준비중입니다.',
-      variant: 'default',
-      duration: 1000,
-    });
+  const handleSubmit = async () => {
+    if (!isFormValid || isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+
+      // API 호출을 위한 데이터 준비
+      const userSetting = {
+        mainInstrument: formData.mainInstrument,
+        genres: formData.genres,
+        experience: formData.experience,
+        purpose: formData.purpose,
+        customGoal: formData.customGoal,
+        // 커스텀 입력값들도 포함 (필요한 경우)
+        ...(formData.mainInstrument === 999 &&
+          customInstrument.trim() && {
+            customInstrument: customInstrument.trim(),
+          }),
+        ...(formData.genres.includes(999) &&
+          customGenre.trim() && {
+            customGenre: customGenre.trim(),
+          }),
+      };
+
+      const response = await patchUserSetting(userSetting);
+
+      if (response?.status === false) {
+        // API에서 실패 응답을 받은 경우
+        toast({
+          title: '설정 저장 실패',
+          description:
+            response.message || '설정을 저장하는 중 오류가 발생했습니다.',
+          variant: 'destructive',
+          duration: 3000,
+        });
+        return;
+      }
+
+      // 성공한 경우
+      toast({
+        title: '설정을 업데이트했습니다.',
+        description: '음악 선호도 설정이 성공적으로 저장되었습니다.',
+        variant: 'default',
+        duration: 2000,
+      });
+
+      onComplete();
+    } catch (error) {
+      console.error('User setting update error:', error);
+      toast({
+        title: '설정 저장 실패',
+        description:
+          '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+        variant: 'destructive',
+        duration: 3000,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isFormValid =
@@ -292,14 +345,14 @@ export default function MusicPreferenceForm({
       <div className="pt-4">
         <Button
           onClick={handleSubmit}
-          disabled={!isFormValid}
+          disabled={!isFormValid || isSubmitting}
           className={`w-full text-white cursor-pointer ${
-            isFormValid
+            isFormValid && !isSubmitting
               ? 'bg-purple-600 hover:bg-purple-700'
               : 'bg-gray-400 cursor-not-allowed'
           }`}
         >
-          설정완료
+          {isSubmitting ? '저장 중...' : '설정완료'}
         </Button>
       </div>
     </div>

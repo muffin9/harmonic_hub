@@ -7,3 +7,11 @@ export interface UserInfo {
   isEmailVerified: boolean;
   lastLoginAt: string;
 }
+
+export interface UserSetting {
+  mainInstrument: number;
+  genres: number[];
+  experience: number;
+  purpose: number;
+  customGoal: string;
+}
