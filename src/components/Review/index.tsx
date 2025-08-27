@@ -11,6 +11,8 @@ export default function Review() {
   >(null);
 
   const handleSubmit = () => {
+    alert('서비스 준비중입니다.');
+    return;
     if (!feedback.trim()) return;
 
     // TODO: API 호출로 피드백 전송

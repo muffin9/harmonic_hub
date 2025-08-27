@@ -7,6 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { useEffect } from 'react';
 import { getRefreshToken } from '@/lib/auth';
 import { apiAuthFetch } from '@/api/auth';
+import VideoSection from '@/components/VideoSection';
 
 export default function HomePage() {
   useEffect(() => {
@@ -28,9 +29,12 @@ export default function HomePage() {
       <div className="w-full">
         <Header />
         <MusicMainContent />
-        <div className="bg-gradient-to-b from-[#FFFFFF] to-primary">
-          <Review />
-          <Footer />
+        <div className="bg-gradient-to-b from-[#FFFFFF] to-primary mt-[240px]">
+          <VideoSection />
+          <div className="mt-[190px]">
+            <Review />
+            <Footer />
+          </div>
         </div>
       </div>
       <Toaster />
