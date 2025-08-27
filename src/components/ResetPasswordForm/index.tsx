@@ -208,12 +208,12 @@ export default function ResetPasswordForm({
 
         {showCodeInput && (
           <div className="mt-4 p-6 rounded-xl bg-purple-100 flex flex-col items-center space-y-2 animate-fade-in">
-            <div className="w-full text-center text-lg font-medium mb-2">
+            <div className="w-full text-center font-medium mb-2">
               이메일로 받은 인증코드를 입력해 주세요.
             </div>
             <div className="w-full flex items-center justify-between border-b border-purple-300 pb-1">
               <input
-                className="bg-transparent outline-none text-lg flex-1"
+                className="bg-transparent outline-none flex-1"
                 placeholder="인증코드 입력"
                 value={authCode}
                 onChange={(e) => setAuthCode(e.target.value)}
