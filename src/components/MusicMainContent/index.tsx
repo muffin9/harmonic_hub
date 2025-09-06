@@ -1,13 +1,31 @@
 'use client';
 
 import { useEffect, useCallback, useState } from 'react';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useMusicStore } from '@/stores/music-store';
 import { getSubGenres, getScales } from '@/api/category';
 import { getMusicSheetsInfo } from '@/api/info';
 import MusicControls from '@/components/MusicControls';
+
+export type MusicDataType = {
+  musicalKey: string;
+  scoreFileUrl: string;
+  audioFileUrl: string;
+  melodyFileUrl: string;
+  scoreFileSize: string;
+  audioFileSize: string;
+  melodyFileSize: string;
+  createdAt: string;
+  updatedAt: string;
+};
 
 interface MusicSheetData {
   id: string;
@@ -21,21 +39,25 @@ interface MusicSheetData {
     size: number;
     filename: string;
   };
-  accompaniment: {
-    url: string;
-    size: number;
-    filename: string;
-  };
-  score: {
-    url: string;
-    size: number;
-    filename: string;
-  };
+  musicData: MusicDataType[];
 }
 
 export default function MusicMainContent() {
   // 악보 데이터 상태
-  const [musicSheetsData, setMusicSheetsData] = useState<MusicSheetData[]>([]);
+  const [musicSheetsData, setMusicSheetsData] = useState<MusicSheetData>({
+    id: '',
+    title: '',
+    tempo: 0,
+    timeSignature: '',
+    key: '',
+    duration: 0,
+    melody: {
+      url: '',
+      size: 0,
+      filename: '',
+    },
+    musicData: [],
+  });
   const [isMusicSheetsLoading, setIsMusicSheetsLoading] = useState(false);
 
   // Zustand 스토어에서 음악 상태 가져오기
@@ -89,6 +111,7 @@ export default function MusicMainContent() {
       try {
         setScalesLoading(true);
         const data = await getScales(categoryId, subGenreId);
+
         if (data && Array.isArray(data)) {
           setScales(data);
           // 현재 선택된 스케일이 유효하지 않은 경우에만 첫 번째 항목 선택
@@ -114,14 +137,10 @@ export default function MusicMainContent() {
     async (categoryId: number, subGenreId: number, scaleId: number) => {
       try {
         setIsMusicSheetsLoading(true);
-        console.log('Loading music sheets:', {
-          categoryId,
-          subGenreId,
-          scaleId,
-        });
         const data = await getMusicSheetsInfo(categoryId, subGenreId, scaleId);
-        if (data && Array.isArray(data)) {
-          setMusicSheetsData(data as MusicSheetData[]);
+
+        if (data) {
+          setMusicSheetsData(data);
         }
       } catch (error) {
         console.error('Failed to load music sheets:', error);
@@ -134,17 +153,15 @@ export default function MusicMainContent() {
 
   // 카테고리가 변경될 때마다 관련 데이터 로드
   useEffect(() => {
-    if (selectedCategory) {
-      loadSubGenres(selectedCategory);
-    }
+    loadSubGenres(selectedCategory);
   }, [selectedCategory, loadSubGenres]);
 
   // 서브장르가 변경되거나 카테고리가 변경될 때 스케일 로드
   useEffect(() => {
-    if (selectedCategory && selectedSubGenre) {
+    if (selectedScale && selectedSubGenre) {
       loadScales(selectedCategory, selectedSubGenre);
     }
-  }, [selectedCategory, selectedSubGenre, loadScales]);
+  }, [selectedCategory, selectedSubGenre, selectedScale, loadScales]);
 
   // 카테고리, 서브장르, 스케일이 모두 선택되었을 때 악보 데이터 로드
   useEffect(() => {
@@ -176,11 +193,12 @@ export default function MusicMainContent() {
   return (
     <>
       {/* 서브장르 버튼 */}
-      <div className="max-w-[1040px] mx-auto flex gap-3 px-3 py-2 relative">
-        <button className="text-gray-400 hover:text-gray-600 cursor-pointer">
-          <ChevronLeft className="absolute left-0 h-8 w-8 text-[#c287b3]" />
-        </button>
-        <div className="px-4 flex gap-3 mt-8">
+      <div className="max-w-[820px] mx-auto h-[50px] flex align-items justify-between gap-3 pt-4 relative">
+        <div className="flex gap-3">
+          <button className="text-gray-400 hover:text-gray-600 cursor-pointer">
+            <ChevronLeft className="h-8 w-8 text-[#c287b3]" />
+          </button>
+
           {isSubGenresLoading ? (
             <div className="flex gap-3">
               {[1, 2, 3, 4].map((i) => (
@@ -191,80 +209,93 @@ export default function MusicMainContent() {
               ))}
             </div>
           ) : (
-            subGenres.map((genre) => (
-              <Button
-                key={genre.id}
-                className={`px-4 py-1 rounded-full border cursor-pointer transition-all duration-200 ${
-                  selectedSubGenre === genre.id
-                    ? 'bg-[#C891FF] text-white border-[#C891FF] shadow-[0px_2px_8px_0px_rgba(167,139,250,0.3)]'
-                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
-                onClick={() => setSelectedSubGenre(genre.id)}
-              >
-                {genre.nameEn}
-              </Button>
-            ))
+            <div className="flex gap-3">
+              {subGenres.map((genre) => (
+                <Button
+                  key={genre.id}
+                  className={`px-4 py-1 rounded-full border cursor-pointer transition-all duration-200 ${
+                    selectedSubGenre === genre.id
+                      ? 'bg-[#C891FF] text-white border-[#C891FF] shadow-[0px_2px_8px_0px_rgba(167,139,250,0.3)]'
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setSelectedSubGenre(genre.id)}
+                >
+                  {genre.nameEn}
+                </Button>
+              ))}
+            </div>
           )}
+
+          <button className="text-gray-400 hover:text-gray-600 cursor-pointer">
+            <ChevronRight className="h-8  w-8 text-[#c287b3]" />
+          </button>
         </div>
-        <button className="text-gray-400 hover:text-gray-600 cursor-pointer">
-          <ChevronRight className="absolute right-0 h-8  w-8 text-[#c287b3]" />
-        </button>
+        {/* 왼쪽 사이드바: 스케일 선택 */}
+        {scales.length > 0 && (
+          <div>
+            <div className="w-full min-w-[150px] flex justify-center items-center gap-2"></div>
+            <Select
+              value={selectedScale || ''}
+              onValueChange={(value: string) => setSelectedScale(value)}
+              disabled={isScalesLoading}
+            >
+              <SelectTrigger className="w-full bg-white border-gray-300 hover:border-purple-400 focus:border-purple-500">
+                <SelectValue placeholder="스케일을 선택해주세요." />
+              </SelectTrigger>
+              <SelectContent>
+                {isScalesLoading ? (
+                  <SelectItem value="loading" disabled>
+                    로딩 중...
+                  </SelectItem>
+                ) : (
+                  scales.map((scale) => (
+                    <SelectItem key={scale.nameEn} value={scale.nameEn}>
+                      {scale.nameKo}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       {/* 메인 콘텐츠 영역 */}
-      <div className="max-w-[1040px] mx-auto flex bg-white">
+      <div className="w-full mx-auto bg-white">
         <div className="flex mt-4">
-          {/* 왼쪽 사이드바: 스케일 선택 */}
-          <div className="w-1/4 py-6">
-            <div className="w-full flex justify-center items-center gap-2 mb-4">
-              <div className="w-[20px] h-[1px] bg-[#C187B3]" />
-              <h2 className="text-lg font-bold text-black">스케일 선택</h2>
-              <div className="w-[20px] h-[1px] bg-[#C187B3]" />
-            </div>
-            {isScalesLoading ? (
-              <div className="space-y-2">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="w-32 h-4 bg-gray-200 rounded animate-pulse"
-                  />
-                ))}
-              </div>
-            ) : (
-              <ul className="space-y-2">
-                {scales.map((scale) => (
-                  <li
-                    key={scale.nameEn}
-                    className={`cursor-pointer ${
-                      selectedScale === scale.nameEn
-                        ? 'text-purple-700 font-bold'
-                        : 'text-gray-700'
-                    }`}
-                    onClick={() => setSelectedScale(scale.nameEn)}
-                  >
-                    {scale.nameKo}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
           {/* 메인: 악보 이미지 */}
-          <div className="flex-1 flex flex-col items-center justify-start p-4">
-            <div className="w-full max-w-4xl">
+          <div className="flex-1 flex flex-col items-center justify-start py-4">
+            <div>
               {/* 악보 PDF 뷰어 */}
-              <div className="w-full shadow border rounded-lg overflow-hidden">
+              <div className="w-full shadow border overflow-hidden">
                 {isMusicSheetsLoading ? (
                   <div className="w-[818px] h-[719px] bg-gray-200 animate-pulse flex items-center justify-center">
                     <div className="text-gray-500">악보 로딩 중...</div>
                   </div>
-                ) : musicSheetsData[0]?.score?.url ? (
-                  <div className="w-[818px] h-[719px]">
+                ) : musicSheetsData.musicData[0]?.scoreFileUrl ? (
+                  <div className="w-[818px] h-[719px] relative">
                     <iframe
-                      src={musicSheetsData[0].score.url}
-                      className="w-full h-full border-0"
+                      src={musicSheetsData.musicData[0].scoreFileUrl}
+                      className="w-full h-full border-0 rounded-lg"
                       title="악보 PDF"
+                      onError={() => {
+                        console.error(
+                          'PDF 로드 실패:',
+                          musicSheetsData.musicData[0].scoreFileUrl,
+                        );
+                      }}
                     />
+                    {/* 백업 링크 - iframe 로드 실패 시 사용 */}
+                    <div className="absolute top-2 right-2">
+                      <a
+                        href={musicSheetsData.musicData[0].scoreFileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                      >
+                        새 탭에서 열기
+                      </a>
+                    </div>
                   </div>
                 ) : (
                   <div className="w-[818px] h-[719px] bg-gray-50 flex flex-col items-center justify-center border-gray-300">
@@ -283,7 +314,7 @@ export default function MusicMainContent() {
               </div>
 
               <MusicControls
-                musicData={musicSheetsData[0] || null}
+                musicData={musicSheetsData.musicData[0] || null}
                 defaultTempo={tempo}
               />
             </div>

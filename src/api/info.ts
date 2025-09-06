@@ -10,7 +10,7 @@ export const getMusicSheetsInfo = async (
 
     const response = await apiAuthFetch(url);
     const data = await response.json();
-    return data;
+    return data[0];
   } catch (error) {
     console.error('get music sheets info error');
   }

@@ -3,33 +3,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, Pause } from 'lucide-react';
-
-interface MusicSheetData {
-  id: string;
-  title: string;
-  tempo: number;
-  timeSignature: string;
-  key: string;
-  duration: number;
-  melody: {
-    url: string;
-    size: number;
-    filename: string;
-  };
-  accompaniment: {
-    url: string;
-    size: number;
-    filename: string;
-  };
-  score: {
-    url: string;
-    size: number;
-    filename: string;
-  };
-}
+import { MusicDataType } from '../MusicMainContent';
 
 interface MusicControlsProps {
-  musicData: MusicSheetData | null;
+  musicData: MusicDataType | null;
   defaultTempo: number;
 }
 
@@ -44,7 +21,7 @@ export default function MusicControls({
 
   // 음악 재생/정지 함수
   const toggleMusic = useCallback(async () => {
-    const accompanimentUrl = musicData?.accompaniment?.url;
+    const accompanimentUrl = musicData?.audioFileUrl;
 
     if (!accompanimentUrl) {
       alert('재생할 음악이 없습니다.');
@@ -112,20 +89,20 @@ export default function MusicControls({
       audioRef.current.pause();
       setIsPlaying(false);
     }
-  }, [musicData?.id]);
+  }, [musicData?.musicalKey]);
 
   return (
-    <div className="flex justify-center items-center gap-4 border-t py-3 bg-purple-100 mt-4 rounded-b-lg">
+    <div className="flex justify-center items-center gap-4 border-t py-3 bg-purple-100 rounded-b-lg">
       {/* 재생/정지 버튼 */}
       <button
-        data-id={musicData?.id}
+        data-id={musicData?.musicalKey}
         className={`flex items-center justify-center w-12 h-8 rounded cursor-pointer transition-all duration-200 ${
           isAudioLoading
             ? 'bg-gray-400 cursor-not-allowed'
             : 'bg-purple-600 hover:bg-purple-700'
         } text-white`}
         onClick={toggleMusic}
-        disabled={isAudioLoading || !musicData?.accompaniment?.url}
+        disabled={isAudioLoading || !musicData?.audioFileUrl}
       >
         {isAudioLoading ? (
           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -141,7 +118,7 @@ export default function MusicControls({
         onClick={() => alert('서비스 준비중입니다.')}
         className="cursor-pointer"
       >
-        템포: {musicData?.tempo || defaultTempo}
+        템포: {musicData?.musicalKey || defaultTempo}
       </Button>
 
       {/* 메트로놈 버튼 */}

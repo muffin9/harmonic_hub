@@ -79,6 +79,8 @@ const Header = () => {
       const categories = await getMusicCategories();
       if (categories && Array.isArray(categories)) {
         setCategories(categories);
+        // 하드코딩된 부분 리팩토링 차후 필요
+        setSelectedCategory(categories[1].id);
       }
     } catch (error) {
       console.error('Failed to load music categories:', error);
@@ -259,19 +261,21 @@ const Header = () => {
 
         {/* 음악 카테고리 탭 */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex justify-center space-x-6 text-sm md:text-base font-medium">
-          {musicCategories.map((category) => (
-            <button
-              key={category.id}
-              className={`${
-                selectedCategory === category.id
-                  ? 'text-purple-500'
-                  : 'text-gray-700'
-              } hover:text-purple-700 cursor-pointer`}
-              onClick={() => setSelectedCategory(category.id)}
-            >
-              {category.nameEn}
-            </button>
-          ))}
+          {musicCategories
+            .filter((category) => category.id !== 0)
+            .map((category) => (
+              <button
+                key={category.id}
+                className={`${
+                  selectedCategory === category.id
+                    ? 'text-purple-500'
+                    : 'text-gray-700'
+                } hover:text-purple-700 cursor-pointer`}
+                onClick={() => setSelectedCategory(category.id)}
+              >
+                {category.nameEn}
+              </button>
+            ))}
         </div>
       </header>
 
