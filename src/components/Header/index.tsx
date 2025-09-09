@@ -231,6 +231,7 @@ const Header = () => {
               // 비로그인 상태
               <>
                 <Button
+                  data-login-button
                   className="cursor-pointer bg-white text-black hover:bg-white/50 hover:text-black/50"
                   onClick={() => setIsLoginOpen(true)}
                 >
