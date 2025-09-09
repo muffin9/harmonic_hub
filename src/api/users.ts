@@ -26,6 +26,10 @@ export const getUserSetting = async () => {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/users/setting`,
+      {
+        method: 'GET',
+        headers: createAuthHeaders(),
+      },
     );
 
     const data = await response.json();
