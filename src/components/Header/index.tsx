@@ -21,20 +21,14 @@ import {
 import LoginForm from '../LoginForm';
 import ResetPasswordForm from '../ResetPasswordForm';
 import MusicPreferenceForm from '../MusicPreferenceForm';
-import { getUser, isAuthenticated, logout } from '@/lib/auth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu } from 'lucide-react';
-import { getUserInfo } from '@/api/users';
+// getUserInfo는 더 이상 사용하지 않음
 import { getMusicCategories } from '@/api/category';
 import { useMusicStore } from '@/stores/music-store';
+import { useUserStore } from '@/stores/user-store';
 
-type AppUser = {
-  id: string;
-  email: string;
-  name: string | null;
-  role: string;
-  authProvider: string;
-};
+// AppUser 타입은 user-store.ts에서 import하므로 제거
 
 interface MusicCategory {
   id: number;
@@ -46,7 +40,15 @@ interface MusicCategory {
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [user, setUser] = useState<AppUser | null>(null);
+
+  // Zustand 스토어에서 사용자 상태 가져오기
+  const {
+    user,
+    isAuthenticated,
+    isLoading: isUserLoading,
+    loadUser,
+    logout: storeLogout,
+  } = useUserStore();
 
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
@@ -63,15 +65,7 @@ const Header = () => {
     setCategoriesLoading,
   } = useMusicStore();
 
-  const loadUser = useCallback(() => {
-    const ok = isAuthenticated();
-    if (ok) {
-      const currentUser = getUser();
-      setUser(currentUser);
-    } else {
-      setUser(null);
-    }
-  }, []);
+  // loadUser는 이제 Zustand 스토어에서 관리됨
 
   const loadMusicCategories = useCallback(async () => {
     try {
@@ -90,12 +84,12 @@ const Header = () => {
   }, [setCategories, setCategoriesLoading]);
 
   useEffect(() => {
-    loadUser();
+    loadUser(); // 초기 로그인 상태 확인
     loadMusicCategories();
     // 다른 탭/창에서 로그인/로그아웃 시 동기화
     const onStorage = (e: StorageEvent) => {
       if (e.key === 'access_token' || e.key === 'user' || e.key === null) {
-        loadUser();
+        loadUser(); // 상태 동기화
       }
     };
     window.addEventListener('storage', onStorage);
@@ -103,20 +97,11 @@ const Header = () => {
   }, [loadUser, loadMusicCategories]);
 
   const onLogout = () => {
-    logout();
-    setUser(null);
+    storeLogout(); // Zustand 스토어의 logout 사용
     setMenuOpen(false);
   };
 
-  const handleGetUser = async () => {
-    const userInfo = await getUserInfo();
-
-    if (userInfo && 'id' in userInfo) {
-      setUser(userInfo);
-    } else {
-      setUser(null);
-    }
-  };
+  // handleGetUser는 이제 Zustand 스토어에서 자동으로 관리됨
 
   const handleSignup = () => {
     setIsSignUpOpen(false); // 회원가입 폼 닫기
@@ -125,7 +110,7 @@ const Header = () => {
 
   const handleLogin = () => {
     setIsLoginOpen(false);
-    handleGetUser();
+    // 사용자 정보는 Zustand 스토어에서 자동으로 업데이트됨
   };
 
   const handleSwitchToSignup = () => {

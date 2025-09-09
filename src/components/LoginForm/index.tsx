@@ -5,6 +5,7 @@ import { SocialLoginButtons } from '../SocialLoginButtons';
 import { defaultLogin } from '@/api/auth';
 import { useToast } from '@/hooks/use-toast';
 import { setTokens } from '@/lib/auth';
+import { useUserStore } from '@/stores/user-store';
 import { Eye, EyeOff } from 'lucide-react';
 
 interface LoginFormProps {
@@ -19,6 +20,7 @@ const LoginForm = ({
   resetPasswordCallbackFunc,
 }: LoginFormProps) => {
   const { toast } = useToast();
+  const { setUser } = useUserStore();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,6 +31,15 @@ const LoginForm = ({
 
     if (result.access_token && result.refresh_token) {
       setTokens(result.access_token, result.refresh_token);
+
+      // Zustand 스토어에 사용자 정보 설정
+      setUser({
+        id: result.user?.id || '',
+        email: result.user?.email || email,
+        name: result.user?.name || null,
+        role: result.user?.role || 'user',
+        authProvider: 'local',
+      });
 
       toast({ title: '로그인 성공', variant: 'default', duration: 1000 });
       loginCallbackFunc();

@@ -13,18 +13,21 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { MusicDataType } from '../MusicMainContent';
+import { useUserStore } from '@/stores/user-store';
 
 interface MusicControlsProps {
   musicData: MusicDataType | null;
   defaultTempo: number;
-  isLoggedIn: boolean;
+  isLoggedIn: boolean; // 이 prop은 호환성을 위해 유지하지만 실제로는 사용하지 않음
 }
 
 export default function MusicControls({
   musicData,
   defaultTempo,
-  isLoggedIn,
+  isLoggedIn: _isLoggedIn, // 사용하지 않는 prop을 언더스코어로 표시
 }: MusicControlsProps) {
+  // Zustand 스토어에서 실제 로그인 상태 가져오기
+  const { isAuthenticated, loadUser } = useUserStore();
   // 오디오 재생 상태
   const [isPlaying, setIsPlaying] = useState(false);
   const [isAudioLoading, setIsAudioLoading] = useState(false);
@@ -40,6 +43,11 @@ export default function MusicControls({
   const melodyAudioRef = useRef<HTMLAudioElement | null>(null);
   const metronomeIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const trialTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 로그인 상태 확인
+  useEffect(() => {
+    loadUser();
+  }, [loadUser]);
 
   // 음악 재생/정지 함수
   const toggleMusic = useCallback(async () => {
@@ -57,7 +65,7 @@ export default function MusicControls({
     }
 
     // 로그인하지 않은 경우 체험 모드 안내
-    if (!isLoggedIn && !isTrialMode) {
+    if (!isAuthenticated && !isTrialMode) {
       alert(
         '로그인하지 않은 사용자는 10초 체험만 가능합니다. 전체 재생을 원하시면 로그인해주세요.',
       );
@@ -140,7 +148,7 @@ export default function MusicControls({
         setIsPlaying(true);
 
         // 로그인하지 않은 경우 10초 후 자동 정지
-        if (!isLoggedIn) {
+        if (!isAuthenticated) {
           trialTimeoutRef.current = setTimeout(() => {
             if (audioRef.current) {
               audioRef.current.pause();
@@ -171,7 +179,7 @@ export default function MusicControls({
       setIsAudioLoading(false);
       alert('음악 재생 중 오류가 발생했습니다.');
     }
-  }, [musicData, isPlaying, isMelodyOn, isLoggedIn, isTrialMode]);
+  }, [musicData, isPlaying, isMelodyOn, isAuthenticated, isTrialMode]);
 
   // 정지 함수
   const stopMusic = useCallback(() => {
@@ -192,10 +200,10 @@ export default function MusicControls({
     }
 
     // 로그인하지 않은 경우 체험 모드 리셋 (다시 재생 가능하도록)
-    if (!isLoggedIn) {
+    if (!isAuthenticated) {
       setIsTrialMode(false);
     }
-  }, [isLoggedIn]);
+  }, [isAuthenticated]);
 
   // 멜로디 토글 함수
   const toggleMelody = useCallback(() => {
@@ -604,10 +612,10 @@ export default function MusicControls({
           disabled={
             isAudioLoading ||
             (!musicData?.audioFileUrl && !musicData?.melodyFileUrl) ||
-            (!isLoggedIn && isTrialMode)
+            (!isAuthenticated && isTrialMode)
           }
           className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 cursor-pointer ${
-            isAudioLoading || (!isLoggedIn && isTrialMode)
+            isAudioLoading || (!isAuthenticated && isTrialMode)
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-[#E8D5F2] hover:bg-[#D4C4E0]'
           }`}
@@ -624,10 +632,10 @@ export default function MusicControls({
           onClick={stopMusic}
           disabled={
             (!musicData?.audioFileUrl && !musicData?.melodyFileUrl) ||
-            (!isLoggedIn && !isTrialMode)
+            (!isAuthenticated && !isTrialMode)
           }
           className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 cursor-pointer ${
-            !isLoggedIn && !isTrialMode
+            !isAuthenticated && !isTrialMode
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-[#E8D5F2] hover:bg-[#D4C4E0]'
           }`}
@@ -638,9 +646,9 @@ export default function MusicControls({
         {/* 멜로디 토글 버튼 */}
         <button
           onClick={toggleMelody}
-          disabled={!isLoggedIn}
+          disabled={!isAuthenticated}
           className={`flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-200 cursor-pointer ${
-            !isLoggedIn
+            !isAuthenticated
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-[#E8D5F2] hover:bg-[#D4C4E0]'
           }`}
@@ -670,9 +678,9 @@ export default function MusicControls({
         <button
           data-tempo-button
           onClick={toggleTempoPopup}
-          disabled={!isLoggedIn}
+          disabled={!isAuthenticated}
           className={`px-4 py-3 rounded-full transition-all duration-200 cursor-pointer ${
-            !isLoggedIn
+            !isAuthenticated
               ? 'bg-gray-400 cursor-not-allowed text-gray-600'
               : showTempoPopup
               ? 'bg-[#4A2C5A] text-white'
@@ -686,9 +694,9 @@ export default function MusicControls({
         <button
           data-metronome-button
           onClick={toggleMetronome}
-          disabled={!isLoggedIn}
+          disabled={!isAuthenticated}
           className={`flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-200 cursor-pointer ${
-            !isLoggedIn
+            !isAuthenticated
               ? 'bg-gray-400 cursor-not-allowed text-gray-600'
               : showMetronomePopup || isMetronomeOn
               ? 'bg-[#4A2C5A] text-white'

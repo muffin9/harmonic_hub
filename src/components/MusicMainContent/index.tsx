@@ -11,10 +11,10 @@ import {
 } from '@/components/ui/select';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useMusicStore } from '@/stores/music-store';
+import { useUserStore } from '@/stores/user-store';
 import { getSubGenres, getScales } from '@/api/category';
 import { getMusicSheetsInfo } from '@/api/info';
 import MusicControls from '@/components/MusicControls';
-import { isAuthenticated } from '@/lib/auth';
 
 export type MusicDataType = {
   musicalKey: string;
@@ -61,7 +61,6 @@ export default function MusicMainContent() {
   });
   const [isMusicSheetsLoading, setIsMusicSheetsLoading] = useState(false);
   const [selectedMusicIndex, setSelectedMusicIndex] = useState(0);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Zustand 스토어에서 음악 상태 가져오기
   const {
@@ -81,6 +80,9 @@ export default function MusicMainContent() {
     isSubGenresLoading,
     isScalesLoading,
   } = useMusicStore();
+
+  // Zustand 스토어에서 사용자 상태 가져오기
+  const { isAuthenticated, loadUser } = useUserStore();
 
   // 서브장르 데이터 로드
   const loadSubGenres = useCallback(
@@ -202,24 +204,8 @@ export default function MusicMainContent() {
 
   // 로그인 상태 확인
   useEffect(() => {
-    const checkAuthStatus = () => {
-      setIsLoggedIn(isAuthenticated());
-    };
-
-    checkAuthStatus();
-
-    // 다른 탭/창에서 로그인/로그아웃 시 동기화
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === 'access_token' || e.key === 'user' || e.key === null) {
-        checkAuthStatus();
-      }
-    };
-
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, []);
-
-  console.log(musicSheetsData, selectedMusicIndex);
+    loadUser();
+  }, [loadUser]);
 
   return (
     <>
@@ -336,13 +322,13 @@ export default function MusicMainContent() {
                       <iframe
                         src={`${musicSheetsData.musicData[selectedMusicIndex].scoreFileUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
                         className={`w-full h-full border-0 ${
-                          !isLoggedIn ? 'absolute top-0 left-0' : ''
+                          !isAuthenticated ? 'absolute top-0 left-0' : ''
                         }`}
                         title={`악보 PDF - ${musicSheetsData.title}`}
                         style={{
                           background: 'white',
                           minHeight: '100%',
-                          ...(isLoggedIn
+                          ...(isAuthenticated
                             ? {}
                             : {
                                 height: '120px', // 맨 윗줄만 보이도록 높이 제한
@@ -360,13 +346,13 @@ export default function MusicMainContent() {
                       />
 
                       {/* 로그인하지 않은 경우 나머지 부분을 어둡게 처리 */}
-                      {!isLoggedIn && (
+                      {!isAuthenticated && (
                         <div className="absolute top-[120px] left-0 w-full h-full bg-gradient-to-b from-transparent to-black/50" />
                       )}
                     </div>
 
                     {/* 로그인 유도 오버레이 */}
-                    {!isLoggedIn && (
+                    {!isAuthenticated && (
                       <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20">
                         <div className="bg-white/95 backdrop-blur-sm rounded-lg p-6 text-center shadow-lg max-w-sm mx-4">
                           <div className="text-2xl mb-3">🔒</div>
@@ -439,7 +425,7 @@ export default function MusicMainContent() {
                   musicSheetsData.musicData[selectedMusicIndex] || null
                 }
                 defaultTempo={tempo}
-                isLoggedIn={isLoggedIn}
+                isLoggedIn={isAuthenticated}
               />
             </div>
           </div>

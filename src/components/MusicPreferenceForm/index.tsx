@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { patchUserSetting, getUserSetting } from '@/api/users';
+import { useUserStore } from '@/stores/user-store';
 
 interface MusicPreferenceFormProps {
   onComplete: () => void;
@@ -31,6 +32,7 @@ export default function MusicPreferenceForm({
   onComplete,
 }: MusicPreferenceFormProps) {
   const { toast } = useToast();
+  const { isAuthenticated, loadUser } = useUserStore();
 
   const [formData, setFormData] = useState<FormData>({
     mainInstrument: 0,
@@ -48,6 +50,15 @@ export default function MusicPreferenceForm({
   // 사용자 설정 데이터 로드
   useEffect(() => {
     const loadUserSettings = async () => {
+      // 먼저 로그인 상태 확인
+      loadUser();
+
+      // 로그인하지 않은 경우 설정 로드하지 않음
+      if (!isAuthenticated) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const userSettings = await getUserSetting();
 
@@ -93,7 +104,7 @@ export default function MusicPreferenceForm({
     };
 
     loadUserSettings();
-  }, [toast]);
+  }, [toast, isAuthenticated, loadUser]);
 
   const handleGenreChange = (genreId: number, checked: boolean) => {
     if (checked) {
@@ -184,6 +195,22 @@ export default function MusicPreferenceForm({
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
           <p className="text-gray-600">설정을 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="w-full flex items-center justify-center py-8">
+        <div className="text-center">
+          <div className="text-2xl mb-3">🔒</div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">
+            로그인이 필요합니다
+          </h3>
+          <p className="text-gray-600">
+            음악 선호도 설정을 하려면 로그인해주세요.
+          </p>
         </div>
       </div>
     );

@@ -11,6 +11,7 @@ import {
   validateAuthReqEmail,
 } from '@/api/auth';
 import { useToast } from '@/hooks/use-toast';
+import { useUserStore } from '@/stores/user-store';
 
 interface SignupFormProps {
   signupCallbackFunc: () => void;
@@ -18,6 +19,7 @@ interface SignupFormProps {
 
 export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
   const { toast } = useToast();
+  const { setUser } = useUserStore();
   const [email, setEmail] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [agreements, setAgreements] = useState({
@@ -151,6 +153,15 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
     }
     const data = await defaultRegister(email, password);
     if (data.success) {
+      // Zustand 스토어에 사용자 정보 설정 (회원가입 성공 시)
+      setUser({
+        id: data.user?.id || '',
+        email: email,
+        name: data.user?.name || null,
+        role: data.user?.role || 'user',
+        authProvider: 'local',
+      });
+
       toast({
         title: data.message,
         variant: 'default',
