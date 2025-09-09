@@ -95,6 +95,7 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
       });
       setCodeError('');
       setIsCodeVerified(true);
+      setShowCodeInput(false); // 인증코드 영역 숨기기
     } else {
       setCodeError('올바른 인증코드가 아닙니다.');
       setIsCodeVerified(false);
@@ -216,11 +217,19 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
         </div>
         <Button
           variant="default"
-          className="mt-8 w-full bg-purple-300 cursor-pointer text-white"
+          className={`mt-8 w-full cursor-pointer text-white ${
+            isCodeVerified
+              ? 'bg-green-500 hover:bg-green-600'
+              : 'bg-purple-300 hover:bg-purple-400'
+          }`}
           onClick={validateEmail}
-          disabled={!isEmailValid || isEmailLoading}
+          disabled={!isEmailValid || isEmailLoading || isCodeVerified}
         >
-          {isEmailLoading ? '인증 요청 중...' : '이메일 인증'}
+          {isEmailLoading
+            ? '인증 요청 중...'
+            : isCodeVerified
+            ? '이메일 인증 완료'
+            : '이메일 인증'}
         </Button>
         {showCodeInput && (
           <div className="mt-4 p-6 rounded-xl bg-purple-100 flex flex-col items-center space-y-2 animate-fade-in">

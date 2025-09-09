@@ -28,7 +28,7 @@ export default function ResetPasswordForm({
   const [timer, setTimer] = useState(599); // 9분59초
   const [isResending, setIsResending] = useState(false);
   const [isCodeVerified, setIsCodeVerified] = useState(false);
-  const [showPasswordInput, setShowPasswordInput] = useState(false);
+  const [showPasswordInput, setShowPasswordInput] = useState(true);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
@@ -96,7 +96,7 @@ export default function ResetPasswordForm({
       });
       setCodeError('');
       setIsCodeVerified(true);
-      setShowPasswordInput(true);
+      setShowCodeInput(false); // 인증코드 영역 숨기기
     } else {
       setCodeError('올바른 인증코드가 아닙니다.');
       setIsCodeVerified(false);
@@ -199,11 +199,19 @@ export default function ResetPasswordForm({
         </div>
         <Button
           variant="default"
-          className="mt-8 w-full bg-purple-300 cursor-pointer text-white"
+          className={`mt-8 w-full cursor-pointer text-white ${
+            isCodeVerified
+              ? 'bg-green-500 hover:bg-green-600'
+              : 'bg-purple-300 hover:bg-purple-400'
+          }`}
           onClick={validateEmail}
-          disabled={!isEmailValid || isEmailLoading}
+          disabled={!isEmailValid || isEmailLoading || isCodeVerified}
         >
-          {isEmailLoading ? '인증 요청 중...' : '이메일 인증'}
+          {isEmailLoading
+            ? '인증 요청 중...'
+            : isCodeVerified
+            ? '이메일 인증 완료'
+            : '이메일 인증'}
         </Button>
 
         {showCodeInput && (
@@ -248,56 +256,56 @@ export default function ResetPasswordForm({
           </div>
         )}
 
-        {showPasswordInput && (
-          <div className="mt-4 space-y-4 animate-fade-in">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">새 비밀번호</label>
-              <Input
-                type="password"
-                placeholder="새 비밀번호 입력"
-                value={newPassword}
-                onChange={(e) => handleNewPasswordChange(e.target.value)}
-              />
-              {passwordError ? (
-                <div className="text-xs text-red-500 mt-1">{passwordError}</div>
-              ) : (
-                newPassword.length >= 8 && (
-                  <div className="text-xs text-green-600 mt-1">
-                    올바른 비밀번호입니다.
-                  </div>
-                )
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">새 비밀번호 확인</label>
-              <Input
-                type="password"
-                placeholder="새 비밀번호 재입력"
-                value={confirmPassword}
-                onChange={(e) => handleConfirmPasswordChange(e.target.value)}
-              />
-              {confirmPasswordError && (
-                <div className="text-xs text-red-500 mt-1">
-                  {confirmPasswordError}
+        <div className="mt-4 space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">새 비밀번호</label>
+            <Input
+              type="password"
+              placeholder="새 비밀번호 입력"
+              value={newPassword}
+              onChange={(e) => handleNewPasswordChange(e.target.value)}
+              disabled={!isCodeVerified}
+            />
+            {passwordError ? (
+              <div className="text-xs text-red-500 mt-1">{passwordError}</div>
+            ) : (
+              newPassword.length >= 8 && (
+                <div className="text-xs text-green-600 mt-1">
+                  올바른 비밀번호입니다.
                 </div>
-              )}
-            </div>
+              )
+            )}
           </div>
-        )}
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">새 비밀번호 확인</label>
+            <Input
+              type="password"
+              placeholder="새 비밀번호 재입력"
+              value={confirmPassword}
+              onChange={(e) => handleConfirmPasswordChange(e.target.value)}
+              disabled={!isCodeVerified}
+            />
+            {confirmPasswordError && (
+              <div className="text-xs text-red-500 mt-1">
+                {confirmPasswordError}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {showPasswordInput && (
-        <Button
-          disabled={
-            !validatePassword(newPassword) || newPassword !== confirmPassword
-          }
-          className="w-full cursor-pointer"
-          onClick={handleResetPassword}
-        >
-          비밀번호 재설정
-        </Button>
-      )}
+      <Button
+        disabled={
+          !isCodeVerified ||
+          !validatePassword(newPassword) ||
+          newPassword !== confirmPassword
+        }
+        className="w-full cursor-pointer"
+        onClick={handleResetPassword}
+      >
+        비밀번호 재설정
+      </Button>
     </div>
   );
 }

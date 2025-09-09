@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import { patchUserSetting } from '@/api/users';
+import { patchUserSetting, getUserSetting } from '@/api/users';
 
 interface MusicPreferenceFormProps {
   onComplete: () => void;
@@ -16,6 +16,14 @@ interface FormData {
   genres: number[];
   experience: number;
   purpose: number;
+  customGoal: string;
+}
+
+interface UserSettingData {
+  mainInstrument: string;
+  genres: string[];
+  experience: string;
+  purpose: string;
   customGoal: string;
 }
 
@@ -35,6 +43,57 @@ export default function MusicPreferenceForm({
   const [customInstrument, setCustomInstrument] = useState('');
   const [customGenre, setCustomGenre] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // 사용자 설정 데이터 로드
+  useEffect(() => {
+    const loadUserSettings = async () => {
+      try {
+        const userSettings = await getUserSetting();
+
+        if (userSettings && typeof userSettings === 'object') {
+          const settings = userSettings as UserSettingData;
+
+          // 문자열을 숫자로 변환하여 설정
+          setFormData({
+            mainInstrument: parseInt(settings.mainInstrument) || 0,
+            genres: settings.genres
+              .map((g) => parseInt(g))
+              .filter((g) => !isNaN(g)),
+            experience: parseInt(settings.experience) || 1,
+            purpose: parseInt(settings.purpose) || 0,
+            customGoal: settings.customGoal || '',
+          });
+
+          // 커스텀 악기가 선택된 경우 처리
+          if (parseInt(settings.mainInstrument) === 999) {
+            // 커스텀 악기명은 별도 API나 필드에서 가져와야 할 수 있음
+            // 현재는 빈 문자열로 설정
+            setCustomInstrument('');
+          }
+
+          // 커스텀 장르가 선택된 경우 처리
+          if (settings.genres.includes('999')) {
+            // 커스텀 장르명은 별도 API나 필드에서 가져와야 할 수 있음
+            // 현재는 빈 문자열로 설정
+            setCustomGenre('');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load user settings:', error);
+        toast({
+          title: '설정 로드 실패',
+          description: '사용자 설정을 불러오는 중 오류가 발생했습니다.',
+          variant: 'destructive',
+          duration: 3000,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadUserSettings();
+  }, [toast]);
 
   const handleGenreChange = (genreId: number, checked: boolean) => {
     if (checked) {
@@ -118,6 +177,17 @@ export default function MusicPreferenceForm({
     (!formData.genres.includes(999) || customGenre.trim()) &&
     formData.experience &&
     formData.purpose;
+
+  if (isLoading) {
+    return (
+      <div className="w-full flex items-center justify-center py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">설정을 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full space-y-8 max-h-[70vh] overflow-y-auto">
