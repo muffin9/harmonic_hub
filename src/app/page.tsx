@@ -30,7 +30,7 @@ export default function HomePage() {
         <Header />
         <MusicMainContent />
         <div className="bg-gradient-to-b from-[#FFFFFF] to-primary mt-[240px]">
-          <VideoSection />
+          {/* <VideoSection /> */}
           <div className="mt-[190px]">
             <Review />
             <Footer />

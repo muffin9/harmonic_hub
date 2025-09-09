@@ -14,6 +14,7 @@ import { useMusicStore } from '@/stores/music-store';
 import { getSubGenres, getScales } from '@/api/category';
 import { getMusicSheetsInfo } from '@/api/info';
 import MusicControls from '@/components/MusicControls';
+import { isAuthenticated } from '@/lib/auth';
 
 export type MusicDataType = {
   musicalKey: string;
@@ -59,6 +60,8 @@ export default function MusicMainContent() {
     musicData: [],
   });
   const [isMusicSheetsLoading, setIsMusicSheetsLoading] = useState(false);
+  const [selectedMusicIndex, setSelectedMusicIndex] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Zustand 스토어에서 음악 상태 가져오기
   const {
@@ -190,6 +193,34 @@ export default function MusicMainContent() {
     loadMusicSheets,
   ]);
 
+  // 음원 데이터가 변경될 때 선택된 인덱스 초기화
+  useEffect(() => {
+    if (musicSheetsData.musicData.length > 0) {
+      setSelectedMusicIndex(0);
+    }
+  }, [musicSheetsData.musicData]);
+
+  // 로그인 상태 확인
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      setIsLoggedIn(isAuthenticated());
+    };
+
+    checkAuthStatus();
+
+    // 다른 탭/창에서 로그인/로그아웃 시 동기화
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'access_token' || e.key === 'user' || e.key === null) {
+        checkAuthStatus();
+      }
+    };
+
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  console.log(musicSheetsData, selectedMusicIndex);
+
   return (
     <>
       {/* 서브장르 버튼 */}
@@ -272,29 +303,109 @@ export default function MusicMainContent() {
                   <div className="w-[818px] h-[719px] bg-gray-200 animate-pulse flex items-center justify-center">
                     <div className="text-gray-500">악보 로딩 중...</div>
                   </div>
-                ) : musicSheetsData.musicData[0]?.scoreFileUrl ? (
-                  <div className="w-[818px] h-[719px] relative">
-                    <iframe
-                      src={musicSheetsData.musicData[0].scoreFileUrl}
-                      className="w-full h-full border-0 rounded-lg"
-                      title="악보 PDF"
-                      onError={() => {
-                        console.error(
-                          'PDF 로드 실패:',
-                          musicSheetsData.musicData[0].scoreFileUrl,
-                        );
-                      }}
-                    />
-                    {/* 백업 링크 - iframe 로드 실패 시 사용 */}
-                    <div className="absolute top-2 right-2">
-                      <a
-                        href={musicSheetsData.musicData[0].scoreFileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-block px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
-                      >
-                        새 탭에서 열기
-                      </a>
+                ) : musicSheetsData.musicData.length > 0 ? (
+                  <div className="w-[818px] h-[719px] relative bg-white">
+                    {/* PDF 제목 표시 */}
+                    <div className="absolute top-2 left-2 z-10 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm">
+                      <span className="text-sm font-medium text-gray-700">
+                        🎼 {musicSheetsData.title}
+                      </span>
+                    </div>
+
+                    {/* 음원 선택 버튼들 */}
+                    {musicSheetsData.musicData.length > 1 && (
+                      <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10 flex gap-2">
+                        {musicSheetsData.musicData.map((music, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setSelectedMusicIndex(index)}
+                            className={`px-3 py-1 text-xs rounded-full transition-all duration-200 ${
+                              selectedMusicIndex === index
+                                ? 'bg-[#4A2C5A] text-white shadow-md'
+                                : 'bg-white/90 text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            키: {music.musicalKey}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* PDF 뷰어 */}
+                    <div
+                      className={`w-full h-full ${
+                        !isLoggedIn ? 'blur-sm' : ''
+                      }`}
+                    >
+                      <iframe
+                        src={`${musicSheetsData.musicData[selectedMusicIndex].scoreFileUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
+                        className="w-full h-full border-0"
+                        title={`악보 PDF - ${musicSheetsData.title}`}
+                        style={{
+                          background: 'white',
+                          minHeight: '100%',
+                        }}
+                        onError={() => {
+                          console.error(
+                            'PDF 로드 실패:',
+                            musicSheetsData.musicData[selectedMusicIndex]
+                              .scoreFileUrl,
+                          );
+                        }}
+                      />
+                    </div>
+
+                    {/* 로그인 유도 오버레이 */}
+                    {!isLoggedIn && (
+                      <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20">
+                        <div className="bg-white/95 backdrop-blur-sm rounded-lg p-6 text-center shadow-lg max-w-sm mx-4">
+                          <div className="text-2xl mb-3">🔒</div>
+                          <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                            로그인이 필요합니다
+                          </h3>
+                          <p className="text-sm text-gray-600 mb-4">
+                            전체 악보를 보려면 로그인해주세요.
+                            <br />
+                            지금은 미리보기만 가능합니다.
+                          </p>
+                          <Button
+                            onClick={() => {
+                              // Header의 로그인 버튼 클릭과 동일한 동작
+                              const loginButton = document.querySelector(
+                                '[data-login-button]',
+                              ) as HTMLButtonElement;
+                              if (loginButton) {
+                                loginButton.click();
+                              }
+                            }}
+                            className="bg-[#4A2C5A] hover:bg-[#3A1C4A] text-white px-6 py-2 rounded-full"
+                          >
+                            로그인하기
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 악보 정보 */}
+                    <div className="absolute bottom-2 left-2 z-10 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-lg shadow-sm text-xs text-gray-600">
+                      <div>템포: {musicSheetsData.tempo} BPM</div>
+                      <div>
+                        키:{' '}
+                        {
+                          musicSheetsData.musicData[selectedMusicIndex]
+                            .musicalKey
+                        }
+                      </div>
+                      <div>
+                        크기:{' '}
+                        {(
+                          parseInt(
+                            musicSheetsData.musicData[selectedMusicIndex]
+                              .scoreFileSize,
+                          ) / 1024
+                        ).toFixed(1)}{' '}
+                        KB
+                      </div>
                     </div>
                   </div>
                 ) : (
@@ -314,8 +425,11 @@ export default function MusicMainContent() {
               </div>
 
               <MusicControls
-                musicData={musicSheetsData.musicData[0] || null}
+                musicData={
+                  musicSheetsData.musicData[selectedMusicIndex] || null
+                }
                 defaultTempo={tempo}
+                isLoggedIn={isLoggedIn}
               />
             </div>
           </div>
