@@ -35,9 +35,11 @@ export default function MusicControls({
   const [showTempoPopup, setShowTempoPopup] = useState(false);
   const [metronomeVolume, setMetronomeVolume] = useState(0.5);
   const [metronomeBPM, setMetronomeBPM] = useState(120);
+  const [isTrialMode, setIsTrialMode] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const melodyAudioRef = useRef<HTMLAudioElement | null>(null);
   const metronomeIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const trialTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 음악 재생/정지 함수
   const toggleMusic = useCallback(async () => {
@@ -54,6 +56,14 @@ export default function MusicControls({
       alert('반주음원이 없습니다. 멜로디음원만 재생됩니다.');
     }
 
+    // 로그인하지 않은 경우 체험 모드 안내
+    if (!isLoggedIn && !isTrialMode) {
+      alert(
+        '로그인하지 않은 사용자는 10초 체험만 가능합니다. 전체 재생을 원하시면 로그인해주세요.',
+      );
+      setIsTrialMode(true);
+    }
+
     try {
       setIsAudioLoading(true);
 
@@ -65,7 +75,7 @@ export default function MusicControls({
             audioRef.current = null;
           }
           audioRef.current = new Audio(audioUrl);
-          audioRef.current.volume = 1.0; // 반주는 항상 볼륨 1.0
+          audioRef.current.volume = 0.5; // -14LUFS에 맞춰 볼륨 조정 (반주)
         }
       }
 
@@ -80,7 +90,7 @@ export default function MusicControls({
             melodyAudioRef.current = null;
           }
           melodyAudioRef.current = new Audio(melodyUrl);
-          melodyAudioRef.current.volume = isMelodyOn ? 1.0 : 0.0; // 멜로디 토글에 따라 볼륨 조절
+          melodyAudioRef.current.volume = isMelodyOn ? 0.5 : 0.0; // -14LUFS에 맞춰 볼륨 조정 (멜로디)
         }
       }
 
@@ -128,6 +138,32 @@ export default function MusicControls({
 
         await Promise.all(playPromises);
         setIsPlaying(true);
+
+        // 로그인하지 않은 경우 10초 후 자동 정지
+        if (!isLoggedIn) {
+          trialTimeoutRef.current = setTimeout(() => {
+            if (audioRef.current) {
+              audioRef.current.pause();
+              audioRef.current.currentTime = 0;
+            }
+            if (melodyAudioRef.current) {
+              melodyAudioRef.current.pause();
+              melodyAudioRef.current.currentTime = 0;
+            }
+            setIsPlaying(false);
+            setIsTrialMode(false);
+
+            // 체험 모드 타이머 정리
+            if (trialTimeoutRef.current) {
+              clearTimeout(trialTimeoutRef.current);
+              trialTimeoutRef.current = null;
+            }
+
+            alert(
+              '10초 체험이 종료되었습니다. 전체 재생을 원하시면 로그인해주세요.',
+            );
+          }, 10000);
+        }
       }
     } catch (error) {
       console.error('Audio playback error:', error);
@@ -135,7 +171,7 @@ export default function MusicControls({
       setIsAudioLoading(false);
       alert('음악 재생 중 오류가 발생했습니다.');
     }
-  }, [musicData, isPlaying, isMelodyOn]);
+  }, [musicData, isPlaying, isMelodyOn, isLoggedIn, isTrialMode]);
 
   // 정지 함수
   const stopMusic = useCallback(() => {
@@ -148,7 +184,18 @@ export default function MusicControls({
       melodyAudioRef.current.currentTime = 0;
     }
     setIsPlaying(false);
-  }, []);
+
+    // 체험 모드 타이머 정리
+    if (trialTimeoutRef.current) {
+      clearTimeout(trialTimeoutRef.current);
+      trialTimeoutRef.current = null;
+    }
+
+    // 로그인하지 않은 경우 체험 모드 리셋 (다시 재생 가능하도록)
+    if (!isLoggedIn) {
+      setIsTrialMode(false);
+    }
+  }, [isLoggedIn]);
 
   // 멜로디 토글 함수
   const toggleMelody = useCallback(() => {
@@ -156,7 +203,7 @@ export default function MusicControls({
       const newState = !prev;
       // 멜로디 오디오의 볼륨 조절
       if (melodyAudioRef.current) {
-        melodyAudioRef.current.volume = newState ? 1.0 : 0.0;
+        melodyAudioRef.current.volume = newState ? 0.5 : 0.0; // -14LUFS에 맞춰 볼륨 조정
       }
       return newState;
     });
@@ -347,6 +394,10 @@ export default function MusicControls({
         clearInterval(metronomeIntervalRef.current);
         metronomeIntervalRef.current = null;
       }
+      if (trialTimeoutRef.current) {
+        clearTimeout(trialTimeoutRef.current);
+        trialTimeoutRef.current = null;
+      }
     };
   }, []);
 
@@ -362,6 +413,13 @@ export default function MusicControls({
     }
     setIsPlaying(false);
     setIsAudioLoading(false);
+    setIsTrialMode(false);
+
+    // 체험 모드 타이머 정리
+    if (trialTimeoutRef.current) {
+      clearTimeout(trialTimeoutRef.current);
+      trialTimeoutRef.current = null;
+    }
   }, [
     musicData?.musicalKey,
     musicData?.melodyFileUrl,
@@ -544,12 +602,12 @@ export default function MusicControls({
         <button
           onClick={toggleMusic}
           disabled={
-            !isLoggedIn ||
             isAudioLoading ||
-            (!musicData?.audioFileUrl && !musicData?.melodyFileUrl)
+            (!musicData?.audioFileUrl && !musicData?.melodyFileUrl) ||
+            (!isLoggedIn && isTrialMode)
           }
           className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 cursor-pointer ${
-            !isLoggedIn || isAudioLoading
+            isAudioLoading || (!isLoggedIn && isTrialMode)
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-[#E8D5F2] hover:bg-[#D4C4E0]'
           }`}
@@ -565,11 +623,11 @@ export default function MusicControls({
         <button
           onClick={stopMusic}
           disabled={
-            !isLoggedIn ||
-            (!musicData?.audioFileUrl && !musicData?.melodyFileUrl)
+            (!musicData?.audioFileUrl && !musicData?.melodyFileUrl) ||
+            (!isLoggedIn && !isTrialMode)
           }
           className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 cursor-pointer ${
-            !isLoggedIn
+            !isLoggedIn && !isTrialMode
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-[#E8D5F2] hover:bg-[#D4C4E0]'
           }`}

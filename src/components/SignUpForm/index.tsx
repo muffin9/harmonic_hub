@@ -159,6 +159,37 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
     }
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      // 이메일 입력 필드에서 엔터키
+      if (
+        e.target === document.querySelector('input[placeholder="이메일 입력"]')
+      ) {
+        if (isEmailValid && !isEmailLoading) {
+          validateEmail();
+        }
+      }
+      // 인증코드 입력 필드에서 엔터키
+      else if (
+        e.target ===
+        document.querySelector('input[placeholder="인증코드 입력"]')
+      ) {
+        if (authCode.length === 6) {
+          handleCodeCheck();
+        }
+      }
+      // 비밀번호 입력 필드에서 엔터키
+      else if (
+        e.target ===
+        document.querySelector('input[placeholder="비밀번호 입력"]')
+      ) {
+        if (isFormValid && isCodeVerified) {
+          handleSignUp();
+        }
+      }
+    }
+  };
+
   return (
     <div className="w-full space-y-6">
       <div className="space-y-2">
@@ -176,6 +207,7 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
               placeholder="이메일 입력"
               value={email}
               onChange={(e) => handleEmailChange(e.target.value)}
+              onKeyPress={handleKeyPress}
               className="w-full border-b border-purple-300 focus:outline-none focus:border-purple-500 py-2 placeholder-gray-400"
             />
 
@@ -201,6 +233,7 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
                 placeholder="인증코드 입력"
                 value={authCode}
                 onChange={(e) => setAuthCode(e.target.value)}
+                onKeyPress={handleKeyPress}
                 maxLength={6}
                 inputMode="numeric"
               />
@@ -236,6 +269,7 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
           placeholder="비밀번호 입력"
           value={password}
           onChange={(e) => handlePasswordChange(e.target.value)}
+          onKeyPress={handleKeyPress}
           className="w-full border-b border-purple-300 focus:outline-none focus:border-purple-500 py-2 placeholder-gray-400"
         />
         {passwordError ? (

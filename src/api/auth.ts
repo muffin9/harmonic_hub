@@ -103,6 +103,13 @@ export const defaultLogin = async (email: string, password: string) => {
       },
     );
 
+    if (response.status === 401) {
+      return {
+        status: false,
+        message: '이메일 또는 비밀번호가 올바르지 않습니다.',
+      };
+    }
+
     const data = await response.json();
     return data;
   } catch (error) {

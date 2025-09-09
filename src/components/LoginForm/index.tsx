@@ -25,14 +25,26 @@ const LoginForm = ({
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
-    const { access_token, refresh_token } = await defaultLogin(email, password);
+    const result = await defaultLogin(email, password);
 
-    if (access_token && refresh_token) {
-      setTokens(access_token, refresh_token);
+    if (result.access_token && result.refresh_token) {
+      setTokens(result.access_token, result.refresh_token);
 
       toast({ title: '로그인 성공', variant: 'default', duration: 1000 });
       loginCallbackFunc();
       return;
+    } else if (result.message) {
+      toast({
+        title: result.message,
+        variant: 'destructive',
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleLogin();
     }
   };
 
@@ -58,17 +70,20 @@ const LoginForm = ({
             placeholder="이메일"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onKeyPress={handleKeyPress}
             className="w-full border-b border-purple-300 focus:outline-none focus:border-purple-500 py-2 placeholder-gray-400"
           />
         </div>
 
         <div className="mb-2 relative">
           <input
-            type={showPassword ? 'text' : 'password'}
+            type={showPassword ? 'password' : 'text'}
             placeholder="비밀번호"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onKeyPress={handleKeyPress}
             className="w-full border-b border-purple-300 focus:outline-none focus:border-purple-500 py-2 placeholder-gray-400 pr-10"
+            autoComplete="current-password"
           />
           <button
             type="button"

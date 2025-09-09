@@ -332,18 +332,23 @@ export default function MusicMainContent() {
                     )}
 
                     {/* PDF 뷰어 */}
-                    <div
-                      className={`w-full h-full ${
-                        !isLoggedIn ? 'blur-sm' : ''
-                      }`}
-                    >
+                    <div className="w-full h-full relative overflow-hidden">
                       <iframe
                         src={`${musicSheetsData.musicData[selectedMusicIndex].scoreFileUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
-                        className="w-full h-full border-0"
+                        className={`w-full h-full border-0 ${
+                          !isLoggedIn ? 'absolute top-0 left-0' : ''
+                        }`}
                         title={`악보 PDF - ${musicSheetsData.title}`}
                         style={{
                           background: 'white',
                           minHeight: '100%',
+                          ...(isLoggedIn
+                            ? {}
+                            : {
+                                height: '120px', // 맨 윗줄만 보이도록 높이 제한
+                                transform: 'scale(1)',
+                                transformOrigin: 'top left',
+                              }),
                         }}
                         onError={() => {
                           console.error(
@@ -353,6 +358,11 @@ export default function MusicMainContent() {
                           );
                         }}
                       />
+
+                      {/* 로그인하지 않은 경우 나머지 부분을 어둡게 처리 */}
+                      {!isLoggedIn && (
+                        <div className="absolute top-[120px] left-0 w-full h-full bg-gradient-to-b from-transparent to-black/50" />
+                      )}
                     </div>
 
                     {/* 로그인 유도 오버레이 */}
@@ -378,7 +388,7 @@ export default function MusicMainContent() {
                                 loginButton.click();
                               }
                             }}
-                            className="bg-[#4A2C5A] hover:bg-[#3A1C4A] text-white px-6 py-2 rounded-full"
+                            className="bg-[#4A2C5A] hover:bg-[#3A1C4A] text-white px-6 py-2 rounded-full cursor-pointer"
                           >
                             로그인하기
                           </Button>
