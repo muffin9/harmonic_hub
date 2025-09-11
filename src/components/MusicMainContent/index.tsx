@@ -69,8 +69,6 @@ export default function MusicMainContent() {
     setSelectedSubGenre,
     selectedScale,
     setSelectedScale,
-    tempo,
-    setTempo,
     subGenres,
     scales,
     setSubGenres,
@@ -143,7 +141,6 @@ export default function MusicMainContent() {
       try {
         setIsMusicSheetsLoading(true);
         const data = await getMusicSheetsInfo(categoryId, subGenreId, scaleId);
-
         if (data) {
           setMusicSheetsData(data);
         }
@@ -286,18 +283,11 @@ export default function MusicMainContent() {
               {/* 악보 PDF 뷰어 */}
               <div className="w-full shadow border overflow-hidden">
                 {isMusicSheetsLoading ? (
-                  <div className="w-[818px] h-[719px] bg-gray-200 animate-pulse flex items-center justify-center">
+                  <div className="w-[818px] h-[1100px] bg-gray-200 animate-pulse flex items-center justify-center">
                     <div className="text-gray-500">악보 로딩 중...</div>
                   </div>
                 ) : musicSheetsData.musicData.length > 0 ? (
-                  <div className="w-[818px] h-[719px] relative bg-white">
-                    {/* PDF 제목 표시 */}
-                    <div className="absolute top-2 left-2 z-10 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm">
-                      <span className="text-sm font-medium text-gray-700">
-                        🎼 {musicSheetsData.title}
-                      </span>
-                    </div>
-
+                  <div className="w-[818px] h-[1100px] relative bg-white">
                     {/* 음원 선택 버튼들 */}
                     {musicSheetsData.musicData.length > 1 && (
                       <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10 flex gap-2">
@@ -331,7 +321,7 @@ export default function MusicMainContent() {
                           ...(isAuthenticated
                             ? {}
                             : {
-                                height: '120px', // 맨 윗줄만 보이도록 높이 제한
+                                height: '100px', // 맨 윗줄만 보이도록 높이 제한
                                 transform: 'scale(1)',
                                 transformOrigin: 'top left',
                               }),
@@ -345,19 +335,19 @@ export default function MusicMainContent() {
                         }}
                       />
 
-                      {/* 로그인하지 않은 경우 나머지 부분을 어둡게 처리 */}
+                      {/* 로그인하지 않은 경우 나머지 부분을 흐리게 처리 */}
                       {!isAuthenticated && (
-                        <div className="absolute top-[120px] left-0 w-full h-full bg-gradient-to-b from-transparent to-black/50" />
+                        <div className="absolute w-full h-full bg-gradient-to-b from-transparent via-white/90 to-white/100" />
                       )}
                     </div>
 
                     {/* 로그인 유도 오버레이 */}
                     {!isAuthenticated && (
-                      <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20">
+                      <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/20">
                         <div className="bg-white/95 backdrop-blur-sm rounded-lg p-6 text-center shadow-lg max-w-sm mx-4">
                           <div className="text-2xl mb-3">🔒</div>
                           <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                            로그인이 필요합니다
+                            로그인하고 더 연습하기
                           </h3>
                           <p className="text-sm text-gray-600 mb-4">
                             전체 악보를 보려면 로그인해주세요.
@@ -381,31 +371,9 @@ export default function MusicMainContent() {
                         </div>
                       </div>
                     )}
-
-                    {/* 악보 정보 */}
-                    <div className="absolute bottom-2 left-2 z-10 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-lg shadow-sm text-xs text-gray-600">
-                      <div>템포: {musicSheetsData.tempo} BPM</div>
-                      <div>
-                        키:{' '}
-                        {
-                          musicSheetsData.musicData[selectedMusicIndex]
-                            .musicalKey
-                        }
-                      </div>
-                      <div>
-                        크기:{' '}
-                        {(
-                          parseInt(
-                            musicSheetsData.musicData[selectedMusicIndex]
-                              .scoreFileSize,
-                          ) / 1024
-                        ).toFixed(1)}{' '}
-                        KB
-                      </div>
-                    </div>
                   </div>
                 ) : (
-                  <div className="w-[818px] h-[719px] bg-gray-50 flex flex-col items-center justify-center border-gray-300">
+                  <div className="w-[818px] h-[700px] bg-gray-50 flex flex-col items-center justify-center border-gray-300">
                     <div className="text-center text-gray-500">
                       <div className="text-lg font-medium mb-2">
                         악보를 선택해주세요
@@ -424,7 +392,7 @@ export default function MusicMainContent() {
                 musicData={
                   musicSheetsData.musicData[selectedMusicIndex] || null
                 }
-                defaultTempo={tempo}
+                defaultTempo={musicSheetsData.tempo}
                 isLoggedIn={isAuthenticated}
               />
             </div>

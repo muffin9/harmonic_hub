@@ -6,6 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SocialLoginButtons } from '../SocialLoginButtons';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
   defaultRegister,
   validateAuthCheckEmail,
   validateAuthReqEmail,
@@ -340,7 +347,160 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
               }
             />
             <span>
-              이용약관 <span className="text-red-500">(필수)</span>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button className="text-gray-700 hover:underline cursor-pointer">
+                    이용약관
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl font-bold text-purple-700 mb-4">
+                      이용약관
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-6 text-sm leading-relaxed">
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <p className="text-gray-700">
+                        본 약관은 주식회사 에이미오(이하 "회사")가 제공하는 웹
+                        기반 음악 학습 도구 서비스 "하모닉허브" (이하
+                        "서비스")의 이용과 관련하여 회사와 회원 간의 권리, 의무
+                        및 책임사항을 규정함을 목적으로 합니다.
+                      </p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="border-l-4 border-purple-300 pl-4">
+                        <h3 className="font-semibold text-purple-700 mb-2">
+                          제1조 (목적)
+                        </h3>
+                        <p className="text-gray-700">
+                          본 약관은 주식회사 에이미오(이하 "회사")가 제공하는 웹
+                          기반 음악 학습 도구 서비스 "하모닉허브" (이하
+                          "서비스")의 이용과 관련하여 회사와 회원 간의 권리,
+                          의무 및 책임사항을 규정함을 목적으로 합니다.
+                        </p>
+                      </div>
+
+                      <div className="border-l-4 border-purple-300 pl-4">
+                        <h3 className="font-semibold text-purple-700 mb-2">
+                          제2조 (정의)
+                        </h3>
+                        <ul className="space-y-1 ml-4">
+                          <li>
+                            <span className="font-medium">"회원"</span>이란 본
+                            약관에 동의하고 서비스를 이용하는 자를 말합니다.
+                          </li>
+                          <li>
+                            <span className="font-medium">"서비스"</span>란
+                            회사가 운영하는 웹 플랫폼에서 제공하는 음악 학습
+                            도구 및 관련 기능을 의미합니다.
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div className="border-l-4 border-purple-300 pl-4">
+                        <h3 className="font-semibold text-purple-700 mb-2">
+                          제3조 (약관의 효력 및 변경)
+                        </h3>
+                        <p className="text-gray-700">
+                          회사는 관련 법령을 위반하지 않는 범위에서 본 약관을
+                          변경할 수 있으며, 변경 시 공지사항을 통해 사전
+                          공지합니다.
+                        </p>
+                      </div>
+
+                      <div className="border-l-4 border-purple-300 pl-4">
+                        <h3 className="font-semibold text-purple-700 mb-2">
+                          제4조 (회원 가입 및 관리)
+                        </h3>
+                        <ul className="space-y-1 ml-4">
+                          <li>
+                            • 회원가입은 이용자가 약관에 동의하고 필요한 정보를
+                            입력함으로써 성립됩니다.
+                          </li>
+                          <li>
+                            • 회원은 개인정보를 허위로 기재할 수 없으며, 그로
+                            인해 발생하는 불이익은 회원 본인에게 있습니다.
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div className="border-l-4 border-purple-300 pl-4">
+                        <h3 className="font-semibold text-purple-700 mb-2">
+                          제5조 (서비스의 제공 및 변경)
+                        </h3>
+                        <ul className="space-y-1 ml-4">
+                          <li>
+                            • 회사는 회원에게 음악 학습 도구 및 관련 서비스를
+                            제공합니다.
+                          </li>
+                          <li>
+                            • 회사는 운영상 필요에 따라 서비스 내용을 변경할 수
+                            있으며, 사전에 공지합니다.
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div className="border-l-4 border-purple-300 pl-4">
+                        <h3 className="font-semibold text-purple-700 mb-2">
+                          제6조 (회원의 의무)
+                        </h3>
+                        <p className="mb-2 text-gray-700">
+                          회원은 다음 행위를 하여서는 안 됩니다.
+                        </p>
+                        <ul className="space-y-1 ml-4">
+                          <li>• 타인의 개인정보 도용</li>
+                          <li>• 서비스 운영 방해 행위</li>
+                          <li>• 저작권 등 제3자의 권리 침해 행위</li>
+                        </ul>
+                      </div>
+
+                      <div className="border-l-4 border-purple-300 pl-4">
+                        <h3 className="font-semibold text-purple-700 mb-2">
+                          제7조 (회사의 의무)
+                        </h3>
+                        <p className="text-gray-700">
+                          회사는 안정적인 서비스 제공을 위해 최선을 다하며,
+                          회원의 개인정보를 보호하기 위해 관련 법령을
+                          준수합니다.
+                        </p>
+                      </div>
+
+                      <div className="border-l-4 border-purple-300 pl-4">
+                        <h3 className="font-semibold text-purple-700 mb-2">
+                          제8조 (서비스 이용의 제한)
+                        </h3>
+                        <p className="text-gray-700">
+                          회원이 본 약관을 위반할 경우, 회사는 회원의 서비스
+                          이용을 제한하거나 회원 자격을 해지할 수 있습니다.
+                        </p>
+                      </div>
+
+                      <div className="border-l-4 border-purple-300 pl-4">
+                        <h3 className="font-semibold text-purple-700 mb-2">
+                          제9조 (책임의 제한)
+                        </h3>
+                        <p className="text-gray-700">
+                          회사는 천재지변, 불가항력, 회원의 귀책사유로 인해
+                          발생한 문제에 대해 책임지지 않습니다.
+                        </p>
+                      </div>
+
+                      <div className="border-l-4 border-purple-300 pl-4">
+                        <h3 className="font-semibold text-purple-700 mb-2">
+                          제10조 (준거법 및 분쟁 해결)
+                        </h3>
+                        <p className="text-gray-700">
+                          본 약관은 대한민국 법률에 따라 해석되며, 서비스 이용과
+                          관련하여 발생한 분쟁은 관할 법원에 제소합니다.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              <span className="text-red-500"> (필수)</span>
             </span>
           </div>
           <div className="flex items-center gap-2">

@@ -147,19 +147,18 @@ const Footer = () => {
                     </p>
                   </div>
 
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="border-l-4 border-purple-300 pl-4">
                     <h3 className="font-semibold text-purple-700 mb-2">
                       8. 개인정보 보호책임자
                     </h3>
-                    <div className="space-y-1">
-                      <p>
-                        <span className="font-medium">성명:</span> 김효정
-                      </p>
-                      <p>
-                        <span className="font-medium">이메일:</span>{' '}
-                        amio.hh.kr@gmail.com
-                      </p>
-                    </div>
+
+                    <p>
+                      <span className="font-medium">성명:</span> 김효정
+                    </p>
+                    <p>
+                      <span className="font-medium">이메일:</span>{' '}
+                      amio.hh.kr@gmail.com
+                    </p>
                   </div>
                 </div>
               </div>
@@ -303,7 +302,7 @@ const Footer = () => {
                     </p>
                   </div>
 
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="border-l-4 border-purple-300 pl-4">
                     <h3 className="font-semibold text-purple-700 mb-2">
                       제10조 (준거법 및 분쟁 해결)
                     </h3>

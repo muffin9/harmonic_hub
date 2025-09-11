@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp, ThumbsDown, Send } from 'lucide-react';
 import {
@@ -22,10 +22,29 @@ export default function Review() {
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
   const [likeCount, setLikeCount] = useState(1537); // 좋아요 개수 상태
   const [negativeFeedback, setNegativeFeedback] = useState(''); // 싫어요 피드백
+  const [hasLikedToday, setHasLikedToday] = useState(false); // 오늘 좋아요를 눌렀는지 여부
+  const [isLikeDisabled, setIsLikeDisabled] = useState(false); // 좋아요 버튼 비활성화 여부
 
   // Zustand 스토어에서 로그인 상태 가져오기
   const { isAuthenticated } = useUserStore();
   const { toast } = useToast();
+
+  // 오늘 좋아요를 눌렀는지 확인하는 함수
+  const checkTodayLikeStatus = () => {
+    if (!isAuthenticated) return;
+
+    const today = new Date().toDateString();
+    const lastLikeDate = localStorage.getItem('lastLikeDate');
+    const hasLiked = lastLikeDate === today;
+
+    setHasLikedToday(hasLiked);
+    setIsLikeDisabled(hasLiked);
+  };
+
+  // 컴포넌트 마운트 시 오늘 좋아요 상태 확인
+  useEffect(() => {
+    checkTodayLikeStatus();
+  }, [isAuthenticated]);
 
   const handleReactionClick = (reaction: 'positive' | 'negative') => {
     if (!isAuthenticated) {
@@ -35,15 +54,33 @@ export default function Review() {
 
     // 좋아요 버튼을 누른 경우
     if (reaction === 'positive') {
-      if (selectedReaction === 'positive') {
-        // 이미 좋아요를 누른 상태라면 취소 (개수 감소)
-        setSelectedReaction(null);
-        setLikeCount((prev) => prev - 1);
-      } else {
-        // 좋아요를 누르지 않은 상태라면 좋아요 (개수 증가)
-        setSelectedReaction('positive');
-        setLikeCount((prev) => prev + 1);
+      // 이미 오늘 좋아요를 눌렀다면 토스트 메시지 표시
+      if (hasLikedToday) {
+        toast({
+          title: '하루에 한 번만 좋아요를 누를 수 있습니다',
+          description: '내일 다시 좋아요를 눌러주세요!',
+          variant: 'default',
+          duration: 2000,
+        });
+        return;
       }
+
+      // 좋아요 처리
+      setSelectedReaction('positive');
+      setLikeCount((prev) => prev + 1);
+      setHasLikedToday(true);
+      setIsLikeDisabled(true);
+
+      // 오늘 날짜를 localStorage에 저장
+      const today = new Date().toDateString();
+      localStorage.setItem('lastLikeDate', today);
+
+      toast({
+        title: '좋아요를 눌렀습니다!',
+        description: '소중한 의견 감사합니다.',
+        variant: 'default',
+        duration: 2000,
+      });
     } else {
       // 싫어요 버튼을 누른 경우
       if (selectedReaction === 'negative') {
@@ -180,10 +217,13 @@ export default function Review() {
             <div className="flex gap-2">
               <button
                 onClick={() => handleReactionClick('positive')}
-                className={`p-2 rounded-lg transition-colors cursor-pointer ${
-                  selectedReaction === 'positive'
-                    ? 'border-green-500 bg-green-50 text-green-600'
-                    : 'border-gray-300 text-gray-500 hover:border-gray-400'
+                disabled={isLikeDisabled}
+                className={`p-2 rounded-lg transition-colors ${
+                  isLikeDisabled
+                    ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : selectedReaction === 'positive'
+                    ? 'border-green-500 bg-green-50 text-green-600 cursor-pointer'
+                    : 'border-gray-300 text-gray-500 hover:border-gray-400 cursor-pointer'
                 }`}
               >
                 <ThumbsUp className="h-5 w-5" />
@@ -237,13 +277,12 @@ export default function Review() {
       <Dialog open={isLoginDialogOpen} onOpenChange={setIsLoginDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-center text-lg font-semibold text-purple-600">
-              로그인이 필요합니다
+            <DialogTitle className="text-center">
+              <div className="text-4xl">🔒</div>
             </DialogTitle>
           </DialogHeader>
-          <div className="text-center py-6">
-            <div className="text-4xl mb-4">🔒</div>
-            <p className="text-gray-600 mb-6">로그인 후 후기를 남겨주세요!</p>
+          <div className="text-center py-2">
+            <p className="text-gray-600 mb-6">로그인 후 눌러주세요!</p>
           </div>
         </DialogContent>
       </Dialog>

@@ -317,10 +317,12 @@ const Header = () => {
 
             {/* 비밀번호 변경 */}
             <div className="grid grid-cols-[80px_1fr] items-center gap-4">
-              <span className="text-sm text-gray-700">비밀번호 변경</span>
+              <span className="text-sm text-gray-700 whitespace-nowrap">
+                비밀번호 변경
+              </span>
               <div>
                 <Button
-                  className="rounded-full bg-purple-400 hover:bg-purple-500 text-white"
+                  className="rounded-full bg-purple-400 hover:bg-purple-500 text-white whitespace-nowrap"
                   onClick={() => {
                     setIsMyInfoOpen(false);
                     setIsResetPasswordOpen(true); // 기존 비밀번호 재설정 다이얼로그 열기
