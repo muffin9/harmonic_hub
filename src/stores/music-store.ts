@@ -75,7 +75,7 @@ export const useMusicStore = create<MusicState>((set, get) => ({
     // 카테고리가 변경되면 관련 서브장르와 스케일도 초기화
     set({
       selectedSubGenre: 0,
-      selectedScale: 'dorian',
+      selectedScale: '',
     });
   },
 

@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import LoginForm from '../LoginForm';
 
 interface MusicControlsProps {
   musicData: MusicDataType | null;
@@ -53,8 +54,8 @@ export default function MusicControls({
   const [dialogContent, setDialogContent] = useState({
     title: '',
     description: '',
-    showLoginButton: false,
   });
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [tempoInputValue, setTempoInputValue] = useState(
     defaultTempo.toString(),
   );
@@ -76,8 +77,8 @@ export default function MusicControls({
 
   // Dialog 표시 함수
   const showDialogMessage = useCallback(
-    (title: string, description: string, showLoginButton = false) => {
-      setDialogContent({ title, description, showLoginButton });
+    (title: string, description: string) => {
+      setDialogContent({ title, description });
       setShowDialog(true);
     },
     [],
@@ -133,11 +134,6 @@ export default function MusicControls({
 
     // 로그인하지 않은 경우 체험 모드 안내
     if (!isAuthenticated && !isTrialMode) {
-      showDialogMessage(
-        '체험 모드',
-        '로그인하지 않은 사용자는 10초 체험만 가능합니다. 전체 재생을 원하시면 로그인해주세요.',
-        true,
-      );
       setIsTrialMode(true);
     }
 
@@ -246,7 +242,7 @@ export default function MusicControls({
         await Promise.all(playPromises);
         setIsPlaying(true);
 
-        // 로그인하지 않은 경우 10초 후 자동 정지
+        // 로그인하지 않은 경우 20초 후 자동 정지 및 로그인 다이얼로그 표시
         if (!isAuthenticated) {
           trialTimeoutRef.current = setTimeout(() => {
             if (audioRef.current) {
@@ -259,19 +255,14 @@ export default function MusicControls({
             }
             setIsPlaying(false);
             setIsTrialMode(false);
+            setShowLoginDialog(true);
 
             // 체험 모드 타이머 정리
             if (trialTimeoutRef.current) {
               clearTimeout(trialTimeoutRef.current);
               trialTimeoutRef.current = null;
             }
-
-            showDialogMessage(
-              '체험 종료',
-              '10초 체험이 종료되었습니다. 전체 재생을 원하시면 로그인해주세요.',
-              true,
-            );
-          }, 10000);
+          }, 20000);
         }
       }
     } catch (error) {
@@ -615,31 +606,34 @@ export default function MusicControls({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex justify-center">
-            {dialogContent.showLoginButton ? (
-              <Button
-                onClick={() => {
-                  // Header의 로그인 버튼 클릭과 동일한 동작
-                  const loginButton = document.querySelector(
-                    '[data-login-button]',
-                  ) as HTMLButtonElement;
-                  if (loginButton) {
-                    loginButton.click();
-                  }
-                  closeDialog();
-                }}
-                className="bg-[#4A2C5A] hover:bg-[#3A1C4A] text-white px-6 py-2 rounded-full"
-              >
-                로그인하기
-              </Button>
-            ) : (
-              <Button
-                onClick={closeDialog}
-                className="bg-[#4A2C5A] hover:bg-[#3A1C4A] text-white px-6 py-2 rounded-full"
-              >
-                확인
-              </Button>
-            )}
+            <Button
+              onClick={closeDialog}
+              className="bg-[#4A2C5A] hover:bg-[#3A1C4A] text-white px-6 py-2 rounded-full"
+            >
+              확인
+            </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 로그인 다이얼로그 */}
+      <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">
+              <div className="text-4xl mb-3">🔒</div>
+              <div className="text-lg font-semibold text-gray-800">
+                로그인하고 더 연습하기
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <LoginForm
+              loginCallbackFunc={() => setShowLoginDialog(false)}
+              signupCallbackFunc={() => setShowLoginDialog(false)}
+              resetPasswordCallbackFunc={() => setShowLoginDialog(false)}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 

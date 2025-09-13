@@ -91,13 +91,13 @@ export default function MusicMainContent() {
         if (data && Array.isArray(data)) {
           setSubGenres(data);
           // 현재 선택된 서브장르가 유효하지 않은 경우에만 첫 번째 항목 선택
-          if (
-            data.length > 0 &&
-            (!selectedSubGenre ||
-              !data.find((genre) => genre.id === selectedSubGenre))
-          ) {
-            setSelectedSubGenre(data[0].id);
-          }
+          // if (
+          //   data.length > 0 &&
+          //   (!selectedSubGenre ||
+          //     !data.find((genre) => genre.id === selectedSubGenre))
+          // ) {
+          //   setSelectedSubGenre(data[0].id);
+          // }
         }
       } catch (error) {
         console.error('Failed to load sub genres:', error);
@@ -160,7 +160,7 @@ export default function MusicMainContent() {
 
   // 서브장르가 변경되거나 카테고리가 변경될 때 스케일 로드
   useEffect(() => {
-    if (selectedScale && selectedSubGenre) {
+    if (selectedSubGenre) {
       loadScales(selectedCategory, selectedSubGenre);
     }
   }, [selectedCategory, selectedSubGenre, selectedScale, loadScales]);
@@ -254,7 +254,7 @@ export default function MusicMainContent() {
               disabled={isScalesLoading}
             >
               <SelectTrigger className="w-full bg-white border-gray-300 hover:border-purple-400 focus:border-purple-500">
-                <SelectValue placeholder="스케일을 선택해주세요." />
+                <SelectValue placeholder={selectedScale ? '' : '스케일 선택'} />
               </SelectTrigger>
               <SelectContent>
                 {isScalesLoading ? (
@@ -287,7 +287,7 @@ export default function MusicMainContent() {
                     <div className="text-gray-500">악보 로딩 중...</div>
                   </div>
                 ) : musicSheetsData.musicData.length > 0 ? (
-                  <div className="w-[818px] h-[1100px] relative bg-white">
+                  <div className="w-[818px] sm:w-[818px] h-[1100px] relative bg-white">
                     {/* 음원 선택 버튼들 */}
                     {musicSheetsData.musicData.length > 1 && (
                       <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10 flex gap-2">
@@ -337,38 +337,27 @@ export default function MusicMainContent() {
 
                       {/* 로그인하지 않은 경우 나머지 부분을 흐리게 처리 */}
                       {!isAuthenticated && (
-                        <div className="absolute w-full h-full bg-gradient-to-b from-transparent via-white/90 to-white/100" />
+                        <div className="absolute w-full h-full bg-gradient-to-b from-transparent via-white/95 to-white/100" />
                       )}
                     </div>
 
                     {/* 로그인 유도 오버레이 */}
                     {!isAuthenticated && (
-                      <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/20">
-                        <div className="bg-white/95 backdrop-blur-sm rounded-lg p-6 text-center shadow-lg max-w-sm mx-4">
-                          <div className="text-2xl mb-3">🔒</div>
-                          <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                            로그인하고 더 연습하기
-                          </h3>
-                          <p className="text-sm text-gray-600 mb-4">
-                            전체 악보를 보려면 로그인해주세요.
-                            <br />
-                            지금은 미리보기만 가능합니다.
-                          </p>
-                          <Button
-                            onClick={() => {
-                              // Header의 로그인 버튼 클릭과 동일한 동작
-                              const loginButton = document.querySelector(
-                                '[data-login-button]',
-                              ) as HTMLButtonElement;
-                              if (loginButton) {
-                                loginButton.click();
-                              }
-                            }}
-                            className="bg-[#4A2C5A] hover:bg-[#3A1C4A] text-white px-6 py-2 rounded-full cursor-pointer"
-                          >
-                            로그인하기
-                          </Button>
-                        </div>
+                      <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/40">
+                        <Button
+                          onClick={() => {
+                            // Header의 로그인 버튼 클릭과 동일한 동작
+                            const loginButton = document.querySelector(
+                              '[data-login-button]',
+                            ) as HTMLButtonElement;
+                            if (loginButton) {
+                              loginButton.click();
+                            }
+                          }}
+                          className="bg-[#4A2C5A] hover:bg-[#3A1C4A] text-white px-6 py-2 rounded-full cursor-pointer"
+                        >
+                          로그인하고 더 연습하기
+                        </Button>
                       </div>
                     )}
                   </div>
