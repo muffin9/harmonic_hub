@@ -20,10 +20,14 @@ export default function Review() {
   >(null);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
+  const [isSuccessDialogOpen, setIsSuccessDialogOpen] = useState(false);
   const [likeCount, setLikeCount] = useState(1537); // 좋아요 개수 상태
   const [negativeFeedback, setNegativeFeedback] = useState(''); // 싫어요 피드백
   const [hasLikedToday, setHasLikedToday] = useState(false); // 오늘 좋아요를 눌렀는지 여부
   const [isLikeDisabled, setIsLikeDisabled] = useState(false); // 좋아요 버튼 비활성화 여부
+  const [loginDialogType, setLoginDialogType] = useState<
+    'like' | 'review' | null
+  >(null); // 로그인 다이얼로그 타입
 
   // Zustand 스토어에서 로그인 상태 가져오기
   const { isAuthenticated } = useUserStore();
@@ -48,6 +52,7 @@ export default function Review() {
 
   const handleReactionClick = (reaction: 'positive' | 'negative') => {
     if (!isAuthenticated) {
+      setLoginDialogType('like');
       setIsLoginDialogOpen(true);
       return;
     }
@@ -96,6 +101,7 @@ export default function Review() {
 
   const handleInputClick = () => {
     if (!isAuthenticated) {
+      setLoginDialogType('review');
       setIsLoginDialogOpen(true);
       return;
     }
@@ -103,6 +109,7 @@ export default function Review() {
 
   const handleSubmit = async () => {
     if (!isAuthenticated) {
+      setLoginDialogType('review');
       setIsLoginDialogOpen(true);
       return;
     }
@@ -127,14 +134,8 @@ export default function Review() {
         return;
       }
 
-      // 성공한 경우
-      toast({
-        title: '피드백이 전송되었습니다!',
-        description:
-          '소중한 의견 감사합니다. 더 나은 서비스로 만들어가겠습니다.',
-        variant: 'default',
-        duration: 3000,
-      });
+      // 성공한 경우 - 모달창 표시
+      setIsSuccessDialogOpen(true);
 
       // 폼 초기화
       setFeedback('');
@@ -282,7 +283,36 @@ export default function Review() {
             </DialogTitle>
           </DialogHeader>
           <div className="text-center py-2">
-            <p className="text-gray-600 mb-6">로그인 후 눌러주세요!</p>
+            <p className="text-gray-600 mb-6">
+              {loginDialogType === 'like'
+                ? '로그인 후 눌러주세요!'
+                : '로그인 후 후기를 남겨주세요!'}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 성공 다이얼로그 */}
+      <Dialog open={isSuccessDialogOpen} onOpenChange={setIsSuccessDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">
+              <div className="text-4xl mb-3">🎉</div>
+              <div className="text-lg font-semibold text-purple-600">
+                피드백이 전송되었습니다!
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-2">
+            <p className="text-gray-600 mb-6">
+              소중한 의견 감사합니다. 더 나은 서비스로 만들어가겠습니다.
+            </p>
+            <Button
+              onClick={() => setIsSuccessDialogOpen(false)}
+              className="px-6 bg-purple-600 hover:bg-purple-700"
+            >
+              확인
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -302,12 +332,6 @@ export default function Review() {
             <p className="text-center text-gray-600 mb-4">
               의견을 적어주시면 더 좋은 서비스로 만들어 가겠습니다 (__)
             </p>
-            <textarea
-              value={negativeFeedback}
-              onChange={(e) => setNegativeFeedback(e.target.value)}
-              placeholder="개선이 필요한 부분을 자세히 알려주세요..."
-              className="w-full h-24 px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
             <div className="flex gap-3 justify-end mt-4">
               <Button
                 onClick={() => {

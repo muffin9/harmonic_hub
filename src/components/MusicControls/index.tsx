@@ -47,8 +47,8 @@ export default function MusicControls({
   const [isMetronomeOn, setIsMetronomeOn] = useState(false);
   const [showMetronomePopup, setShowMetronomePopup] = useState(false);
   const [showTempoPopup, setShowTempoPopup] = useState(false);
-  const [metronomeVolume, setMetronomeVolume] = useState(0.5);
   const [metronomeBPM, setMetronomeBPM] = useState(120);
+  const [tempBPM, setTempBPM] = useState(120);
   const [isTrialMode, setIsTrialMode] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [dialogContent, setDialogContent] = useState({
@@ -62,6 +62,9 @@ export default function MusicControls({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const melodyAudioRef = useRef<HTMLAudioElement | null>(null);
   const metronomeIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const metronomeAudioContextRef = useRef<AudioContext | null>(null);
+  const metronomeNextBeatTimeRef = useRef<number>(0);
+  const metronomeSchedulerRef = useRef<number | null>(null);
   const trialTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 로그인 상태 확인
@@ -138,7 +141,16 @@ export default function MusicControls({
     }
 
     try {
-      setIsAudioLoading(true);
+      // 오디오가 이미 로드되어 있는지 확인
+      const isAudioAlreadyLoaded =
+        audioRef.current && audioRef.current.readyState >= 2;
+      const isMelodyAlreadyLoaded =
+        melodyAudioRef.current && melodyAudioRef.current.readyState >= 2;
+
+      // 오디오가 로드되지 않은 경우에만 로딩 상태 설정
+      if (!isAudioAlreadyLoaded || !isMelodyAlreadyLoaded) {
+        setIsAudioLoading(true);
+      }
 
       // 반주 오디오 설정
       if (audioUrl) {
@@ -225,10 +237,12 @@ export default function MusicControls({
       }
 
       if (isPlaying) {
-        // 재생 중이면 정지
+        // 재생 중이면 일시정지
         if (audioRef.current) audioRef.current.pause();
         if (melodyAudioRef.current) melodyAudioRef.current.pause();
         setIsPlaying(false);
+        setIsAudioLoading(false);
+        return; // 일시정지 후 함수 종료
       } else {
         // 정지 중이면 재생
         const playPromises = [];
@@ -423,97 +437,111 @@ export default function MusicControls({
     setShowMetronomePopup((prev) => !prev);
   }, []);
 
-  // 메트로놈 시작/정지 함수
-  const toggleMetronomePlayback = useCallback(() => {
-    if (isMetronomeOn) {
-      // 메트로놈 정지
-      if (metronomeIntervalRef.current) {
-        clearInterval(metronomeIntervalRef.current);
-        metronomeIntervalRef.current = null;
-      }
-      setIsMetronomeOn(false);
-    } else {
-      // 메트로놈 시작
-      const interval = 60000 / metronomeBPM; // BPM을 밀리초로 변환
-      metronomeIntervalRef.current = setInterval(() => {
-        // 메트로놈 소리 재생 (간단한 beep 소리)
-        const audioContext = new (window.AudioContext ||
-          (window as any).webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
+  // 메트로놈 비트 재생 함수
+  const playMetronomeBeat = useCallback(
+    (audioContext: AudioContext, time: number) => {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
 
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
 
-        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-        oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(800, time);
+      oscillator.type = 'sine';
 
-        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-        gainNode.gain.linearRampToValueAtTime(
-          metronomeVolume * 0.3,
-          audioContext.currentTime + 0.01,
-        );
-        gainNode.gain.exponentialRampToValueAtTime(
-          0.001,
-          audioContext.currentTime + 0.1,
-        );
+      // 고정된 볼륨 사용
+      gainNode.gain.setValueAtTime(0, time);
+      gainNode.gain.linearRampToValueAtTime(0.3, time + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
 
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.1);
-      }, interval);
-      setIsMetronomeOn(true);
-    }
-  }, [isMetronomeOn, metronomeBPM, metronomeVolume]);
-
-  // 볼륨 슬라이더 변경 함수
-  const handleVolumeChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setMetronomeVolume(parseFloat(e.target.value));
+      oscillator.start(time);
+      oscillator.stop(time + 0.1);
     },
     [],
   );
 
-  // BPM 변경 함수
+  // 메트로놈 스케줄러 함수
+  const scheduleMetronomeBeats = useCallback(() => {
+    if (!metronomeAudioContextRef.current || !isMetronomeOn) return;
+
+    const audioContext = metronomeAudioContextRef.current;
+    const currentTime = audioContext.currentTime;
+    const beatInterval = 60 / metronomeBPM; // BPM을 초 단위로 변환
+
+    // 다음 비트 시간 계산
+    if (metronomeNextBeatTimeRef.current === 0) {
+      metronomeNextBeatTimeRef.current = currentTime + 0.1; // 약간의 지연 후 시작
+    }
+
+    // 현재 시간부터 0.5초 앞까지의 비트들을 스케줄
+    while (metronomeNextBeatTimeRef.current < currentTime + 0.5) {
+      playMetronomeBeat(audioContext, metronomeNextBeatTimeRef.current);
+      metronomeNextBeatTimeRef.current += beatInterval;
+    }
+
+    // 다음 스케줄링 예약
+    metronomeSchedulerRef.current = requestAnimationFrame(
+      scheduleMetronomeBeats,
+    );
+  }, [isMetronomeOn, metronomeBPM, playMetronomeBeat]);
+
+  // 메트로놈 시작/정지 함수
+  const toggleMetronomePlayback = useCallback(() => {
+    if (isMetronomeOn) {
+      // 메트로놈 정지
+      if (metronomeSchedulerRef.current) {
+        cancelAnimationFrame(metronomeSchedulerRef.current);
+        metronomeSchedulerRef.current = null;
+      }
+      if (metronomeAudioContextRef.current) {
+        metronomeAudioContextRef.current.close();
+        metronomeAudioContextRef.current = null;
+      }
+      metronomeNextBeatTimeRef.current = 0;
+      setIsMetronomeOn(false);
+    } else {
+      // 메트로놈 시작
+      try {
+        metronomeAudioContextRef.current = new (window.AudioContext ||
+          (window as any).webkitAudioContext)();
+        metronomeNextBeatTimeRef.current = 0;
+        setTempBPM(metronomeBPM); // tempBPM을 현재 BPM으로 동기화
+        setIsMetronomeOn(true);
+        // scheduleMetronomeBeats를 직접 호출하지 않고 useEffect에서 처리
+      } catch (error) {
+        console.error('Failed to start metronome:', error);
+        setIsMetronomeOn(false);
+      }
+    }
+  }, [isMetronomeOn, metronomeBPM]);
+
+  // BPM 슬라이더 드래그 중 변경 함수 (임시 값만 업데이트)
   const handleBPMChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const newBPM = parseInt(e.target.value);
-      setMetronomeBPM(newBPM);
-
-      // 메트로놈이 재생 중이면 새로운 BPM으로 재시작
-      if (isMetronomeOn) {
-        if (metronomeIntervalRef.current) {
-          clearInterval(metronomeIntervalRef.current);
-        }
-        const interval = 60000 / newBPM;
-        metronomeIntervalRef.current = setInterval(() => {
-          const audioContext = new (window.AudioContext ||
-            (window as any).webkitAudioContext)();
-          const oscillator = audioContext.createOscillator();
-          const gainNode = audioContext.createGain();
-
-          oscillator.connect(gainNode);
-          gainNode.connect(audioContext.destination);
-
-          oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-          oscillator.type = 'sine';
-
-          gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-          gainNode.gain.linearRampToValueAtTime(
-            metronomeVolume * 0.3,
-            audioContext.currentTime + 0.01,
-          );
-          gainNode.gain.exponentialRampToValueAtTime(
-            0.001,
-            audioContext.currentTime + 0.1,
-          );
-
-          oscillator.start(audioContext.currentTime);
-          oscillator.stop(audioContext.currentTime + 0.1);
-        }, interval);
-      }
+      setTempBPM(newBPM);
     },
-    [isMetronomeOn, metronomeVolume],
+    [],
   );
+
+  // BPM 슬라이더 드래그 완료 함수 (실제 BPM 적용)
+  const handleBPMChangeComplete = useCallback(() => {
+    setMetronomeBPM(tempBPM);
+
+    // 메트로놈이 재생 중이면 새로운 BPM으로 재시작
+    if (isMetronomeOn) {
+      // 기존 스케줄러 정리
+      if (metronomeSchedulerRef.current) {
+        cancelAnimationFrame(metronomeSchedulerRef.current);
+        metronomeSchedulerRef.current = null;
+      }
+
+      // 다음 비트 시간 리셋
+      metronomeNextBeatTimeRef.current = 0;
+
+      // 새로운 BPM으로 스케줄링 재시작 (useEffect에서 자동으로 처리됨)
+    }
+  }, [tempBPM, isMetronomeOn]);
 
   // 컴포넌트 언마운트 시 오디오 및 메트로놈 정리
   useEffect(() => {
@@ -526,9 +554,13 @@ export default function MusicControls({
         melodyAudioRef.current.pause();
         melodyAudioRef.current = null;
       }
-      if (metronomeIntervalRef.current) {
-        clearInterval(metronomeIntervalRef.current);
-        metronomeIntervalRef.current = null;
+      if (metronomeSchedulerRef.current) {
+        cancelAnimationFrame(metronomeSchedulerRef.current);
+        metronomeSchedulerRef.current = null;
+      }
+      if (metronomeAudioContextRef.current) {
+        metronomeAudioContextRef.current.close();
+        metronomeAudioContextRef.current = null;
       }
       if (trialTimeoutRef.current) {
         clearTimeout(trialTimeoutRef.current);
@@ -561,6 +593,13 @@ export default function MusicControls({
     musicData?.melodyFileUrl,
     musicData?.audioFileUrl,
   ]);
+
+  // 메트로놈 상태 변경 시 스케줄링 시작/정지
+  useEffect(() => {
+    if (isMetronomeOn && metronomeAudioContextRef.current) {
+      scheduleMetronomeBeats();
+    }
+  }, [isMetronomeOn, scheduleMetronomeBeats]);
 
   // 팝업 외부 클릭 시 팝업 닫기
   useEffect(() => {
@@ -637,13 +676,13 @@ export default function MusicControls({
         </DialogContent>
       </Dialog>
 
-      <div className="w-full bg-[#7030A0] py-4 px-6 rounded-lg relative">
+      <div className="w-full bg-[#7030A0] py-3 sm:py-4 px-3 sm:px-6 rounded-lg relative">
         {/* 템포 팝업 */}
         {showTempoPopup && (
-          <div className="tempo-popup absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50">
+          <div className="tempo-popup absolute bottom-full right-0 sm:right-1/4 mb-2 z-50 w-full sm:w-auto">
             {/* 템포 컨트롤 */}
-            <div className="bg-white border-2 border-[#4A2C5A] rounded-lg p-4 mb-2 shadow-lg">
-              <div className="flex items-center gap-4">
+            <div className="bg-white border-2 border-[#4A2C5A] rounded-lg p-3 sm:p-4 mb-2 shadow-lg mx-2 sm:mx-0">
+              <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
                 {/* 템포 슬라이더 */}
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
@@ -700,92 +739,89 @@ export default function MusicControls({
                 </div>
               </div>
             </div>
-
-            {/* 화살표 포인터 */}
-            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-300"></div>
           </div>
         )}
 
         {/* 메트로놈 팝업 */}
         {showMetronomePopup && (
-          <div className="metronome-popup absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50">
-            {/* 볼륨 슬라이더 */}
-            <div className="bg-gray-100 border border-gray-300 rounded-lg p-3 mb-2 shadow-lg">
-              <div className="flex items-center gap-3">
-                <VolumeX className="w-4 h-4 text-gray-500" />
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={metronomeVolume}
-                  onChange={handleVolumeChange}
-                  className="flex-1 h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer slider"
-                  style={{
-                    background: `linear-gradient(to right, #9333ea 0%, #9333ea ${
-                      metronomeVolume * 100
-                    }%, #e5e7eb ${metronomeVolume * 100}%, #e5e7eb 100%)`,
-                  }}
-                />
-                <Volume1 className="w-4 h-4 text-gray-500" />
-              </div>
-            </div>
-
-            {/* 메트로놈 컨트롤 */}
-            <div className="bg-[#E8D5F2] border border-gray-300 rounded-lg p-3 shadow-lg">
-              <div className="flex items-center gap-3">
-                <Volume2 className="w-4 h-4 text-[#4A2C5A]" />
-                <span className="text-sm font-medium text-[#4A2C5A]">
-                  메트로놈
-                </span>
-                <div className="flex items-center gap-2 ml-auto">
+          <div className="metronome-popup absolute bottom-full right-0 mb-2 z-50 w-full sm:w-auto">
+            {/* 메트로놈 컨트롤 통합 박스 */}
+            <div className="bg-white border-2 border-[#4A2C5A] rounded-lg p-3 sm:p-4 shadow-lg min-w-0 sm:min-w-80 mx-2 sm:mx-0">
+              <div className="space-y-3 sm:space-y-4">
+                {/* BPM 조절 */}
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Volume2 className="w-4 h-4 text-[#4A2C5A]" />
+                  <span className="text-xs sm:text-sm font-medium text-[#4A2C5A] min-w-12 sm:min-w-16">
+                    BPM
+                  </span>
                   <input
                     type="range"
                     min="60"
                     max="200"
-                    value={metronomeBPM}
+                    value={tempBPM}
                     onChange={handleBPMChange}
-                    className="w-16 h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer"
+                    onMouseUp={handleBPMChangeComplete}
+                    onTouchEnd={handleBPMChangeComplete}
+                    className="flex-1 h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, #4A2C5A 0%, #4A2C5A ${
+                        ((tempBPM - 60) / 140) * 100
+                      }%, #E5E7EB ${
+                        ((tempBPM - 60) / 140) * 100
+                      }%, #E5E7EB 100%)`,
+                    }}
                   />
-                  <span className="text-xs text-[#4A2C5A] w-8">
-                    {metronomeBPM}
+                  <span className="text-xs sm:text-sm font-medium text-[#4A2C5A] w-6 sm:w-8">
+                    {tempBPM}
                   </span>
+                </div>
+
+                {/* 재생/정지 버튼 */}
+                <div className="flex justify-center">
                   <button
                     onClick={toggleMetronomePlayback}
-                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200 active:bg-white ${
+                    className={`px-4 sm:px-6 py-2 rounded-full flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium transition-all duration-200 ${
                       isMetronomeOn
-                        ? 'bg-[#4A2C5A] text-white'
-                        : 'bg-white text-[#4A2C5A] border border-[#4A2C5A]'
+                        ? 'bg-[#4A2C5A] text-white hover:bg-[#3A1C4A]'
+                        : 'bg-[#E8D5F2] text-[#4A2C5A] hover:bg-[#D4C4E0]'
                     }`}
                   >
-                    {isMetronomeOn ? '⏸' : '▶'}
+                    {isMetronomeOn ? (
+                      <>
+                        <Square className="w-4 h-4" />
+                        정지
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4" />
+                        재생
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
             </div>
-
-            {/* 화살표 포인터 */}
-            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-300"></div>
           </div>
         )}
 
-        <div className="flex justify-center items-center gap-4">
-          {/* 재생 버튼 */}
+        <div className="flex justify-center items-center gap-2 sm:gap-4 flex-wrap">
+          {/* 재생/일시정지 버튼 */}
           <button
             onClick={toggleMusic}
             disabled={
               isAudioLoading ||
-              (!musicData?.audioFileUrl && !musicData?.melodyFileUrl) ||
-              (!isAuthenticated && isTrialMode)
+              (!musicData?.audioFileUrl && !musicData?.melodyFileUrl)
             }
-            className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 cursor-pointer active:bg-white ${
-              isAudioLoading || (!isAuthenticated && isTrialMode)
+            className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full transition-all duration-200 cursor-pointer active:bg-white ${
+              isAudioLoading
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-[#E8D5F2] hover:bg-[#D4C4E0]'
             }`}
           >
             {isAudioLoading ? (
               <div className="w-5 h-5 border-2 border-[#4A2C5A] border-t-transparent rounded-full animate-spin" />
+            ) : isPlaying ? (
+              <Pause className="w-5 h-5 text-[#4A2C5A]" />
             ) : (
               <Play className="w-5 h-5 text-[#4A2C5A] ml-0.5" />
             )}
@@ -798,7 +834,7 @@ export default function MusicControls({
               (!musicData?.audioFileUrl && !musicData?.melodyFileUrl) ||
               (!isAuthenticated && !isTrialMode)
             }
-            className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 cursor-pointer active:bg-white ${
+            className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full transition-all duration-200 cursor-pointer active:bg-white ${
               !isAuthenticated && !isTrialMode
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-[#E8D5F2] hover:bg-[#D4C4E0]'
@@ -811,13 +847,15 @@ export default function MusicControls({
           <button
             onClick={toggleMelody}
             disabled={!isAuthenticated}
-            className={`flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-200 cursor-pointer active:bg-white ${
+            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-full transition-all duration-200 cursor-pointer active:bg-white ${
               !isAuthenticated
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-[#E8D5F2] hover:bg-[#D4C4E0]'
             }`}
           >
-            <span className="text-sm font-medium text-[#4A2C5A]">멜로디</span>
+            <span className="text-xs sm:text-sm font-medium text-[#4A2C5A]">
+              멜로디
+            </span>
             <div
               className={`w-8 h-4 rounded-full transition-all duration-200 ${
                 isMelodyOn ? 'bg-[#4A2C5A]' : 'bg-gray-300'
@@ -843,7 +881,7 @@ export default function MusicControls({
             data-tempo-button
             onClick={toggleTempoPopup}
             disabled={!isAuthenticated}
-            className={`px-4 py-3 rounded-full transition-all duration-200 cursor-pointer active:bg-white ${
+            className={`px-2 sm:px-4 py-2 sm:py-3 rounded-full transition-all duration-200 cursor-pointer active:bg-white ${
               !isAuthenticated
                 ? 'bg-gray-400 cursor-not-allowed text-gray-600'
                 : showTempoPopup
@@ -851,7 +889,9 @@ export default function MusicControls({
                 : 'bg-[#E8D5F2] hover:bg-[#D4C4E0] text-[#4A2C5A]'
             }`}
           >
-            <span className="text-sm font-medium">템포 {currentTempo}</span>
+            <span className="text-xs sm:text-sm font-medium">
+              템포 {currentTempo}
+            </span>
           </button>
 
           {/* 메트로놈 버튼 */}
@@ -859,7 +899,7 @@ export default function MusicControls({
             data-metronome-button
             onClick={toggleMetronome}
             disabled={!isAuthenticated}
-            className={`flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-200 cursor-pointer active:bg-white ${
+            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-full transition-all duration-200 cursor-pointer active:bg-white ${
               !isAuthenticated
                 ? 'bg-gray-400 cursor-not-allowed text-gray-600'
                 : showMetronomePopup || isMetronomeOn
@@ -868,7 +908,7 @@ export default function MusicControls({
             }`}
           >
             <Volume2 className="w-4 h-4" />
-            <span className="text-sm font-medium">메트로놈</span>
+            <span className="text-xs sm:text-sm font-medium">메트로놈</span>
           </button>
         </div>
       </div>

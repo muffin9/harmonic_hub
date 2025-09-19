@@ -65,6 +65,7 @@ export default function MusicMainContent() {
   // Zustand 스토어에서 음악 상태 가져오기
   const {
     selectedCategory,
+    setSelectedCategory,
     selectedSubGenre,
     setSelectedSubGenre,
     selectedScale,
@@ -77,6 +78,7 @@ export default function MusicMainContent() {
     setScalesLoading,
     isSubGenresLoading,
     isScalesLoading,
+    categories: musicCategories,
   } = useMusicStore();
 
   // Zustand 스토어에서 사용자 상태 가져오기
@@ -117,14 +119,6 @@ export default function MusicMainContent() {
 
         if (data && Array.isArray(data)) {
           setScales(data);
-          // 현재 선택된 스케일이 유효하지 않은 경우에만 첫 번째 항목 선택
-          if (
-            data.length > 0 &&
-            (!selectedScale ||
-              !data.find((scale) => scale.nameEn === selectedScale))
-          ) {
-            setSelectedScale(data[0].nameEn);
-          }
         }
       } catch (error) {
         console.error('Failed to load scales:', error);
@@ -132,7 +126,7 @@ export default function MusicMainContent() {
         setScalesLoading(false);
       }
     },
-    [setScales, setSelectedScale, setScalesLoading, selectedScale],
+    [setScales, setScalesLoading],
   );
 
   // 악보 데이터 로드
@@ -153,9 +147,23 @@ export default function MusicMainContent() {
     [],
   );
 
+  // 카테고리가 로드되면 첫 번째 카테고리 자동 선택
+  useEffect(() => {
+    if (musicCategories.length > 0 && !selectedCategory) {
+      const firstCategory = musicCategories.find(
+        (category) => category.id !== 0,
+      );
+      if (firstCategory) {
+        setSelectedCategory(firstCategory.id);
+      }
+    }
+  }, [musicCategories, selectedCategory, setSelectedCategory]);
+
   // 카테고리가 변경될 때마다 관련 데이터 로드
   useEffect(() => {
-    loadSubGenres(selectedCategory);
+    if (selectedCategory) {
+      loadSubGenres(selectedCategory);
+    }
   }, [selectedCategory, loadSubGenres]);
 
   // 서브장르가 변경되거나 카테고리가 변경될 때 스케일 로드
@@ -206,30 +214,51 @@ export default function MusicMainContent() {
 
   return (
     <>
+      {/* 음악 카테고리 탭 */}
+      <div className="max-w-[820px] mx-auto px-4 py-4 bg-white">
+        <div className="flex justify-center space-x-3 sm:space-x-6 text-xs sm:text-sm md:text-base font-medium overflow-x-auto">
+          {musicCategories
+            .filter((category) => category.id !== 0)
+            .map((category) => (
+              <button
+                key={category.id}
+                className={`whitespace-nowrap px-2 py-1 rounded transition-colors ${
+                  selectedCategory === category.id
+                    ? 'text-purple-500 bg-purple-50'
+                    : 'text-gray-700 hover:text-purple-700'
+                }`}
+                onClick={() => setSelectedCategory(category.id)}
+              >
+                {category.nameEn}
+              </button>
+            ))}
+        </div>
+      </div>
+
       {/* 서브장르 버튼 */}
-      <div className="max-w-[820px] mx-auto h-[50px] flex align-items justify-between gap-3 pt-4 relative">
-        <div className="flex gap-3">
+      <div className="max-w-[820px] mx-auto flex flex-col sm:flex-row justify-between gap-3 relative bg-[#e8cafe] px-4 py-3">
+        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto">
           <button className="text-gray-400 hover:text-gray-600 cursor-pointer">
-            <ChevronLeft className="h-8 w-8 text-[#c287b3]" />
+            <ChevronLeft className="h-6 w-6 sm:h-8 sm:w-8 text-[#c287b3]" />
           </button>
 
           {isSubGenresLoading ? (
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3">
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="w-20 h-8 bg-gray-200 rounded-full animate-pulse"
+                  className="w-16 sm:w-20 h-6 sm:h-8 bg-gray-200 rounded-full animate-pulse flex-shrink-0"
                 />
               ))}
             </div>
           ) : (
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3 min-w-0">
               {subGenres.map((genre) => (
                 <Button
                   key={genre.id}
-                  className={`px-4 py-1 rounded-full border cursor-pointer transition-all duration-200 ${
+                  className={`px-2 sm:px-4 py-1 border cursor-pointer transition-all duration-200 text-xs sm:text-sm whitespace-nowrap flex-shrink-0 ${
                     selectedSubGenre === genre.id
-                      ? 'bg-[#C891FF] text-white border-[#C891FF] shadow-[0px_2px_8px_0px_rgba(167,139,250,0.3)]'
+                      ? 'bg-[#C891FF] text-white border-[#C891FF] shadow-[0px_2px_8px_0px_rgba(167,139,250,0.3) underline'
                       : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
                   onClick={() => setSelectedSubGenre(genre.id)}
@@ -241,19 +270,18 @@ export default function MusicMainContent() {
           )}
 
           <button className="text-gray-400 hover:text-gray-600 cursor-pointer">
-            <ChevronRight className="h-8  w-8 text-[#c287b3]" />
+            <ChevronRight className="h-6 w-6 sm:h-8 sm:w-8 text-[#c287b3]" />
           </button>
         </div>
-        {/* 왼쪽 사이드바: 스케일 선택 */}
+
         {scales.length > 0 && (
-          <div>
-            <div className="w-full min-w-[150px] flex justify-center items-center gap-2"></div>
+          <div className="h-full flex items-center justify-end sm:justify-start mt-2 sm:mt-0">
             <Select
               value={selectedScale || ''}
               onValueChange={(value: string) => setSelectedScale(value)}
               disabled={isScalesLoading}
             >
-              <SelectTrigger className="w-full bg-white border-gray-300 hover:border-purple-400 focus:border-purple-500">
+              <SelectTrigger className="w-full sm:w-auto min-w-[120px] bg-white border-gray-300 hover:border-purple-400 focus:border-purple-500 cursor-pointer">
                 <SelectValue placeholder={selectedScale ? '' : '스케일 선택'} />
               </SelectTrigger>
               <SelectContent>
@@ -263,7 +291,11 @@ export default function MusicMainContent() {
                   </SelectItem>
                 ) : (
                   scales.map((scale) => (
-                    <SelectItem key={scale.nameEn} value={scale.nameEn}>
+                    <SelectItem
+                      key={scale.nameEn}
+                      value={scale.nameEn}
+                      className="cursor-pointer"
+                    >
                       {scale.nameKo}
                     </SelectItem>
                   ))
@@ -275,27 +307,27 @@ export default function MusicMainContent() {
       </div>
 
       {/* 메인 콘텐츠 영역 */}
-      <div className="w-full mx-auto bg-white">
-        <div className="flex mt-4">
+      <div className="w-full mx-auto bg-white px-4 sm:px-0 mt-4 sm:mt-0">
+        <div className="flex">
           {/* 메인: 악보 이미지 */}
-          <div className="flex-1 flex flex-col items-center justify-start py-4">
-            <div>
+          <div className="flex-1 flex flex-col items-center justify-start pb-4">
+            <div className="w-full max-w-[818px]">
               {/* 악보 PDF 뷰어 */}
-              <div className="w-full shadow border overflow-hidden">
+              <div className="w-full shadow border overflow-hidden rounded-lg">
                 {isMusicSheetsLoading ? (
-                  <div className="w-[818px] h-[1100px] bg-gray-200 animate-pulse flex items-center justify-center">
+                  <div className="w-full h-[400px] sm:h-[600px] md:h-[800px] lg:h-[1100px] bg-gray-200 animate-pulse flex items-center justify-center">
                     <div className="text-gray-500">악보 로딩 중...</div>
                   </div>
                 ) : musicSheetsData.musicData.length > 0 ? (
-                  <div className="w-[818px] sm:w-[818px] h-[1100px] relative bg-white">
+                  <div className="w-full h-[400px] sm:h-[600px] md:h-[800px] lg:h-[1100px] relative bg-white">
                     {/* 음원 선택 버튼들 */}
                     {musicSheetsData.musicData.length > 1 && (
-                      <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10 flex gap-2">
+                      <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10 flex gap-1 sm:gap-2 flex-wrap justify-center max-w-[90%]">
                         {musicSheetsData.musicData.map((music, index) => (
                           <button
                             key={index}
                             onClick={() => setSelectedMusicIndex(index)}
-                            className={`px-3 py-1 text-xs rounded-full transition-all duration-200 ${
+                            className={`px-2 sm:px-3 py-1 text-xs rounded-full transition-all duration-200 ${
                               selectedMusicIndex === index
                                 ? 'bg-[#4A2C5A] text-white shadow-md'
                                 : 'bg-white/90 text-gray-700 hover:bg-gray-100'
@@ -362,14 +394,15 @@ export default function MusicMainContent() {
                     )}
                   </div>
                 ) : (
-                  <div className="w-[818px] h-[700px] bg-gray-50 flex flex-col items-center justify-center border-gray-300">
-                    <div className="text-center text-gray-500">
-                      <div className="text-lg font-medium mb-2">
+                  <div className="w-full h-[400px] sm:h-[600px] bg-gray-50 flex flex-col items-center justify-center border-gray-300 rounded-lg">
+                    <div className="text-center text-gray-500 px-4">
+                      <div className="text-base sm:text-lg font-medium mb-2">
                         악보를 선택해주세요
                       </div>
-                      <div className="text-sm">
+                      <div className="text-xs sm:text-sm">
                         카테고리, 서브장르, 스케일을 모두 선택하시면
-                        <br />
+                        <br className="hidden sm:block" />
+                        <span className="sm:hidden"> </span>
                         해당하는 악보를 확인할 수 있습니다.
                       </div>
                     </div>

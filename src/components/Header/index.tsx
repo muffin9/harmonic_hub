@@ -57,13 +57,7 @@ const Header = () => {
   const [isMusicPreferenceOpen, setIsMusicPreferenceOpen] = useState(false);
 
   // Zustand 스토어에서 음악 상태 가져오기
-  const {
-    selectedCategory,
-    setSelectedCategory,
-    categories: musicCategories,
-    setCategories,
-    setCategoriesLoading,
-  } = useMusicStore();
+  const { setCategories, setCategoriesLoading } = useMusicStore();
 
   // loadUser는 이제 Zustand 스토어에서 관리됨
 
@@ -73,8 +67,6 @@ const Header = () => {
       const categories = await getMusicCategories();
       if (categories && Array.isArray(categories)) {
         setCategories(categories);
-        // 하드코딩된 부분 리팩토링 차후 필요
-        setSelectedCategory(categories[1].id);
       }
     } catch (error) {
       console.error('Failed to load music categories:', error);
@@ -143,7 +135,7 @@ const Header = () => {
           </Link>
 
           <div className="flex items-center gap-3">
-            {user ? (
+            {isAuthenticated ? (
               // 로그인된 상태 - 햄버거 메뉴만 표시
               <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
                 <DropdownMenuTrigger asChild>
@@ -233,7 +225,7 @@ const Header = () => {
           </div>
         </div>
 
-        <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-center">
+        <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-center mt-4 sm:mt-0">
           <div className="text-2xl md:text-3xl font-semibold text-purple-700 flex justify-center items-center gap-2">
             <span role="img" aria-label="music">
               🎼
@@ -243,25 +235,6 @@ const Header = () => {
           <p className="mt-2 text-[#9575AD] text-base md:text-2xl">
             당신의 연습을 연주하듯 학습해 보세요.
           </p>
-        </div>
-
-        {/* 음악 카테고리 탭 */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex justify-center space-x-6 text-sm md:text-base font-medium">
-          {musicCategories
-            .filter((category) => category.id !== 0)
-            .map((category) => (
-              <button
-                key={category.id}
-                className={`${
-                  selectedCategory === category.id
-                    ? 'text-purple-500'
-                    : 'text-gray-700'
-                } hover:text-purple-700 cursor-pointer`}
-                onClick={() => setSelectedCategory(category.id)}
-              >
-                {category.nameEn}
-              </button>
-            ))}
         </div>
       </header>
 
@@ -317,7 +290,10 @@ const Header = () => {
 
             {/* 비밀번호 변경 */}
             <div className="grid grid-cols-[80px_1fr] items-center gap-4">
-              <span className="text-sm text-gray-700 whitespace-nowrap">
+              <span
+                className="text-sm text-gray-700 whitespace-nowrap break-keep"
+                style={{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }}
+              >
                 비밀번호 변경
               </span>
               <div>

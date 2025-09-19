@@ -349,7 +349,7 @@ export default function SignUpForm({ signupCallbackFunc }: SignupFormProps) {
             <span>
               <Dialog>
                 <DialogTrigger asChild>
-                  <button className="text-gray-700 hover:underline cursor-pointer">
+                  <button className="text-black font-semibold underline hover:underline cursor-pointer">
                     이용약관
                   </button>
                 </DialogTrigger>
