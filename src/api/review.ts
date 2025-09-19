@@ -11,7 +11,7 @@ export const postReview = async (reviewData: ReviewData | string) => {
       typeof reviewData === 'string' ? { content: reviewData } : reviewData;
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/service-reviews`,
+      `${process.env.NEXT_PUBLIC_API_URL}/service-review`,
       {
         method: 'POST',
         headers: createAuthHeaders(),

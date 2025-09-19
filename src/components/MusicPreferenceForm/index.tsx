@@ -61,6 +61,7 @@ export default function MusicPreferenceForm({
 
       try {
         const userSettings = await getUserSetting();
+        console.log('userSettings', userSettings);
 
         if (userSettings && typeof userSettings === 'object') {
           const settings = userSettings as UserSettingData;
