@@ -150,20 +150,13 @@ export default function MusicMainContent() {
   // 카테고리가 로드되면 첫 번째 카테고리 자동 선택
   useEffect(() => {
     if (musicCategories.length > 0 && !selectedCategory) {
-      const firstCategory = musicCategories.find(
-        (category) => category.id !== 0,
-      );
-      if (firstCategory) {
-        setSelectedCategory(firstCategory.id);
-      }
+      setSelectedCategory(musicCategories[0].id);
     }
   }, [musicCategories, selectedCategory, setSelectedCategory]);
 
   // 카테고리가 변경될 때마다 관련 데이터 로드
   useEffect(() => {
-    if (selectedCategory) {
-      loadSubGenres(selectedCategory);
-    }
+    loadSubGenres(selectedCategory);
   }, [selectedCategory, loadSubGenres]);
 
   // 서브장르가 변경되거나 카테고리가 변경될 때 스케일 로드
@@ -215,75 +208,62 @@ export default function MusicMainContent() {
   return (
     <>
       {/* 음악 카테고리 탭 */}
-      <div className="max-w-[820px] mx-auto px-4 py-4 bg-white">
-        <div className="flex justify-center space-x-3 sm:space-x-6 text-xs sm:text-sm md:text-base font-medium overflow-x-auto">
-          {musicCategories
-            .filter((category) => category.id !== 0)
-            .map((category) => (
-              <button
-                key={category.id}
-                className={`whitespace-nowrap px-2 py-1 rounded transition-colors ${
-                  selectedCategory === category.id
-                    ? 'text-purple-500 bg-purple-50'
-                    : 'text-gray-700 hover:text-purple-700'
-                }`}
-                onClick={() => setSelectedCategory(category.id)}
-              >
-                {category.nameEn}
-              </button>
-            ))}
+      <div className="max-w-[820px] mx-auto py-4 bg-white">
+        <div className="flex space-x-3 sm:space-x-6 text-xs sm:text-sm md:text-base font-medium overflow-x-auto">
+          {musicCategories.map((category) => (
+            <button
+              key={category.id}
+              className={`whitespace-nowrap px-2 py-1 rounded ${
+                selectedCategory === category.id
+                  ? 'text-purple-500 bg-purple-50'
+                  : 'text-gray-700 hover:text-purple-700'
+              }`}
+              onClick={() => setSelectedCategory(category.id)}
+            >
+              {category.nameEn}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* 서브장르 버튼 */}
       <div className="max-w-[820px] mx-auto flex flex-col sm:flex-row justify-between gap-3 relative bg-[#e8cafe] px-4 py-3">
-        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto">
+        <div className="md:min-w-[500px] flex items-center gap-2 sm:gap-3 overflow-x-auto">
           <button className="text-gray-400 hover:text-gray-600 cursor-pointer">
             <ChevronLeft className="h-6 w-6 sm:h-8 sm:w-8 text-[#c287b3]" />
           </button>
 
-          {isSubGenresLoading ? (
-            <div className="flex gap-2 sm:gap-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="w-16 sm:w-20 h-6 sm:h-8 bg-gray-200 rounded-full animate-pulse flex-shrink-0"
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="flex gap-2 sm:gap-3 min-w-0">
-              {subGenres.map((genre) => (
-                <Button
-                  key={genre.id}
-                  className={`px-2 sm:px-4 py-1 border cursor-pointer transition-all duration-200 text-xs sm:text-sm whitespace-nowrap flex-shrink-0 ${
-                    selectedSubGenre === genre.id
-                      ? 'bg-[#C891FF] text-white border-[#C891FF] shadow-[0px_2px_8px_0px_rgba(167,139,250,0.3) underline'
-                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
-                  onClick={() => setSelectedSubGenre(genre.id)}
-                >
-                  {genre.nameEn}
-                </Button>
-              ))}
-            </div>
-          )}
+          <div className="flex gap-2 sm:gap-3 md:min-w-[500px]">
+            {subGenres.map((genre) => (
+              <Button
+                key={genre.id}
+                className={`px-2 sm:px-4 py-1 border cursor-pointer text-xs sm:text-sm whitespace-nowrap flex-shrink-0 ${
+                  selectedSubGenre === genre.id
+                    ? 'bg-[#C891FF] text-white border-[#C891FF] shadow-[0px_2px_8px_0px_rgba(167,139,250,0.3) underline'
+                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+                onClick={() => setSelectedSubGenre(genre.id)}
+              >
+                {genre.nameEn}
+              </Button>
+            ))}
+          </div>
 
           <button className="text-gray-400 hover:text-gray-600 cursor-pointer">
             <ChevronRight className="h-6 w-6 sm:h-8 sm:w-8 text-[#c287b3]" />
           </button>
         </div>
 
-        {scales.length > 0 && (
-          <div className="h-full flex items-center justify-end sm:justify-start mt-2 sm:mt-0">
-            <Select
-              value={selectedScale || ''}
-              onValueChange={(value: string) => setSelectedScale(value)}
-              disabled={isScalesLoading}
-            >
-              <SelectTrigger className="w-full sm:w-auto min-w-[120px] bg-white border-gray-300 hover:border-purple-400 focus:border-purple-500 cursor-pointer">
-                <SelectValue placeholder={selectedScale ? '' : '스케일 선택'} />
-              </SelectTrigger>
+        <div className="h-full flex items-center justify-end sm:justify-start mt-2 sm:mt-0">
+          <Select
+            value={selectedScale || ''}
+            onValueChange={(value: string) => setSelectedScale(value)}
+            disabled={isScalesLoading || scales.length === 0}
+          >
+            <SelectTrigger className="w-full sm:w-auto min-w-[120px] bg-white border-gray-300 hover:border-purple-400 focus:border-purple-500 cursor-pointer">
+              <SelectValue placeholder={selectedScale ? '' : '스케일 선택'} />
+            </SelectTrigger>
+            {scales.length > 0 && (
               <SelectContent>
                 {isScalesLoading ? (
                   <SelectItem value="loading" disabled>
@@ -301,9 +281,9 @@ export default function MusicMainContent() {
                   ))
                 )}
               </SelectContent>
-            </Select>
-          </div>
-        )}
+            )}
+          </Select>
+        </div>
       </div>
 
       {/* 메인 콘텐츠 영역 */}
@@ -386,7 +366,7 @@ export default function MusicMainContent() {
                               loginButton.click();
                             }
                           }}
-                          className="bg-[#4A2C5A] hover:bg-[#3A1C4A] text-white px-6 py-2 rounded-full cursor-pointer"
+                          className="bg-[#ffc000] text-white px-6 py-2 rounded-full cursor-pointer"
                         >
                           로그인하고 더 연습하기
                         </Button>
@@ -397,14 +377,15 @@ export default function MusicMainContent() {
                   <div className="w-full h-[400px] sm:h-[600px] bg-gray-50 flex flex-col items-center justify-center border-gray-300 rounded-lg">
                     <div className="text-center text-gray-500 px-4">
                       <div className="text-base sm:text-lg font-medium mb-2">
-                        악보를 선택해주세요
+                        연습할 장르와 스케일을 선택하면 해당 악보를 확인하실 수
+                        있습니다.
                       </div>
-                      <div className="text-xs sm:text-sm">
+                      {/* <div className="text-xs sm:text-sm">
                         카테고리, 서브장르, 스케일을 모두 선택하시면
                         <br className="hidden sm:block" />
                         <span className="sm:hidden"> </span>
                         해당하는 악보를 확인할 수 있습니다.
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 )}

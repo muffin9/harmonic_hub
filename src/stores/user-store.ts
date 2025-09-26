@@ -91,7 +91,8 @@ export const useUserStore = create<UserState>()(
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
-      }), // user와 isAuthenticated만 persist
+        isLoading: state.isLoading,
+      }), // user, isAuthenticated, isLoading persist
     },
   ),
 );

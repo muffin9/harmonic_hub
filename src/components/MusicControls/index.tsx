@@ -432,11 +432,6 @@ export default function MusicControls({
     }
   }, [currentTempo, defaultTempo]);
 
-  // 메트로놈 토글 함수
-  const toggleMetronome = useCallback(() => {
-    setShowMetronomePopup((prev) => !prev);
-  }, []);
-
   // 메트로놈 비트 재생 함수
   const playMetronomeBeat = useCallback(
     (audioContext: AudioContext, time: number) => {
@@ -514,6 +509,15 @@ export default function MusicControls({
       }
     }
   }, [isMetronomeOn, metronomeBPM]);
+
+  // 메트로놈 토글 함수
+  const toggleMetronome = useCallback(() => {
+    setShowMetronomePopup((prev) => !prev);
+    // 팝업이 열릴 때만 재생/정지 토글
+    if (!showMetronomePopup) {
+      toggleMetronomePlayback();
+    }
+  }, [showMetronomePopup, toggleMetronomePlayback]);
 
   // BPM 슬라이더 드래그 중 변경 함수 (임시 값만 업데이트)
   const handleBPMChange = useCallback(
@@ -775,30 +779,6 @@ export default function MusicControls({
                     {tempBPM}
                   </span>
                 </div>
-
-                {/* 재생/정지 버튼 */}
-                <div className="flex justify-center">
-                  <button
-                    onClick={toggleMetronomePlayback}
-                    className={`px-4 sm:px-6 py-2 rounded-full flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium transition-all duration-200 ${
-                      isMetronomeOn
-                        ? 'bg-[#4A2C5A] text-white hover:bg-[#3A1C4A]'
-                        : 'bg-[#E8D5F2] text-[#4A2C5A] hover:bg-[#D4C4E0]'
-                    }`}
-                  >
-                    {isMetronomeOn ? (
-                      <>
-                        <Square className="w-4 h-4" />
-                        정지
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-4 h-4" />
-                        재생
-                      </>
-                    )}
-                  </button>
-                </div>
               </div>
             </div>
           </div>
@@ -846,9 +826,9 @@ export default function MusicControls({
           {/* 멜로디 토글 버튼 */}
           <button
             onClick={toggleMelody}
-            disabled={!isAuthenticated}
+            disabled={!isAuthenticated && !isTrialMode}
             className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-full transition-all duration-200 cursor-pointer active:bg-white ${
-              !isAuthenticated
+              !isAuthenticated && !isTrialMode
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-[#E8D5F2] hover:bg-[#D4C4E0]'
             }`}
@@ -880,9 +860,9 @@ export default function MusicControls({
           <button
             data-tempo-button
             onClick={toggleTempoPopup}
-            disabled={!isAuthenticated}
+            disabled={!isAuthenticated && !isTrialMode}
             className={`px-2 sm:px-4 py-2 sm:py-3 rounded-full transition-all duration-200 cursor-pointer active:bg-white ${
-              !isAuthenticated
+              !isAuthenticated && !isTrialMode
                 ? 'bg-gray-400 cursor-not-allowed text-gray-600'
                 : showTempoPopup
                 ? 'bg-[#4A2C5A] text-white'
@@ -898,17 +878,22 @@ export default function MusicControls({
           <button
             data-metronome-button
             onClick={toggleMetronome}
-            disabled={!isAuthenticated}
-            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-full transition-all duration-200 cursor-pointer active:bg-white ${
-              !isAuthenticated
+            disabled={!isAuthenticated && !isTrialMode}
+            className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 rounded-full transition-all duration-200 cursor-pointer ${
+              !isAuthenticated && !isTrialMode
                 ? 'bg-gray-400 cursor-not-allowed text-gray-600'
                 : showMetronomePopup || isMetronomeOn
-                ? 'bg-[#4A2C5A] text-white'
+                ? 'bg-[#4A2C5A] text-white hover:bg-[#3A1C4A]'
                 : 'bg-[#E8D5F2] hover:bg-[#D4C4E0] text-[#4A2C5A]'
             }`}
           >
             <Volume2 className="w-4 h-4" />
             <span className="text-xs sm:text-sm font-medium">메트로놈</span>
+            {isMetronomeOn ? (
+              <Square className="w-4 h-4" />
+            ) : (
+              <Play className="w-4 h-4" />
+            )}
           </button>
         </div>
       </div>

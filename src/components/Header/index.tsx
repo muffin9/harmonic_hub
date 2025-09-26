@@ -118,7 +118,7 @@ const Header = () => {
   return (
     <>
       <header
-        className="w-full h-[238px] relative bg-cover bg-center bg-no-repeat"
+        className="w-full h-[150px] md:h-[238px] relative bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: 'url(/header_bg.png)' }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between py-4 px-6">
@@ -195,7 +195,7 @@ const Header = () => {
                         {/* 로그아웃 */}
                         <DropdownMenuItem
                           onClick={onLogout}
-                          className="px-4 py-3 cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="px-4 py-3 cursor-pointer text-black hover:text-black/50 hover:bg-black/50"
                         >
                           로그아웃
                         </DropdownMenuItem>
@@ -226,13 +226,13 @@ const Header = () => {
         </div>
 
         <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-center mt-4 sm:mt-0">
-          <div className="text-2xl md:text-3xl font-semibold text-purple-700 flex justify-center items-center gap-2">
+          <div className="text-xs md:text-3xl font-semibold text-purple-700 flex justify-center items-center gap-2">
             <span role="img" aria-label="music">
               🎼
             </span>
             음악은 즐거우려고 배우잖아요,
           </div>
-          <p className="mt-2 text-[#9575AD] text-base md:text-2xl">
+          <p className="mt-2 text-[#9575AD] text-xs md:text-2xl">
             당신의 연습을 연주하듯 학습해 보세요.
           </p>
         </div>

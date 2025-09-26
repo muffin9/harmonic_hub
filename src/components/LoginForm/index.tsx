@@ -72,7 +72,7 @@ const LoginForm = ({
 
         {/* 서비스명 로그인 */}
         <div className="text-sm text-purple-600 font-medium mb-2">
-          서비스명 로그인
+          일반 로그인
         </div>
 
         <div className="mb-4">

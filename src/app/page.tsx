@@ -29,9 +29,9 @@ export default function HomePage() {
       <div className="w-full">
         <Header />
         <MusicMainContent />
-        <div className="bg-gradient-to-b from-[#FFFFFF] to-primary mt-[240px]">
+        <div className="bg-gradient-to-b from-[#FFFFFF] to-primary md:mt-[240px]">
           {/* <VideoSection /> */}
-          <div className="mt-[190px]">
+          <div className="md:mt-[190px]">
             <Review />
             <Footer />
           </div>

@@ -198,15 +198,17 @@ export default function Review() {
   };
 
   return (
-    <div className="w-full py-8 px-4">
+    <div className="w-full py-4 md:py-8 px-4">
       {/* 상단 통계 */}
       <div className="text-center mb-6">
         <div className="flex justify-center items-center gap-2 text-black">
-          <p className="mt-5 text-[24px]">
+          <p className="mt-5 text-[20px] md:text-[24px]">
             학습자들의 음악이 즐거워지고 있어요!
           </p>
           <img src="/thumb.png" alt="thumb" />
-          <span className="text-[40px]">{likeCount.toLocaleString()}</span>
+          <span className="text-[20px] md:text-[40px]">
+            {likeCount.toLocaleString()}
+          </span>
         </div>
       </div>
 
@@ -305,11 +307,11 @@ export default function Review() {
           </DialogHeader>
           <div className="text-center py-2">
             <p className="text-gray-600 mb-6">
-              소중한 의견 감사합니다. 더 나은 서비스로 만들어가겠습니다.
+              소중한 의견 감사합니다. <br /> 더 나은 서비스로 만들어가겠습니다.
             </p>
             <Button
               onClick={() => setIsSuccessDialogOpen(false)}
-              className="px-6 bg-purple-600 hover:bg-purple-700"
+              className="px-6 bg-white text-black hover:bg-white/50 hover:text-black/50"
             >
               확인
             </Button>
@@ -334,21 +336,11 @@ export default function Review() {
             </p>
             <div className="flex gap-3 justify-end mt-4">
               <Button
-                onClick={() => {
-                  setIsFeedbackDialogOpen(false);
-                  setNegativeFeedback('');
-                }}
-                variant="outline"
-                className="px-6"
-              >
-                취소
-              </Button>
-              <Button
                 onClick={handleNegativeFeedbackSubmit}
                 disabled={!negativeFeedback.trim()}
                 className="px-6 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400"
               >
-                제출
+                확인
               </Button>
             </div>
           </div>
