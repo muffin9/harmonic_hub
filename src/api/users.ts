@@ -32,8 +32,16 @@ export const getUserSetting = async () => {
       },
     );
 
+    console.log('getUserSetting: Response status:', response.status);
+    console.log('getUserSetting: Response ok:', response.ok);
+    console.log('getUserSetting: Response headers:', response.headers);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
     const data = await response.json();
-    console.log('data', data);
+    console.log('getUserSetting: data', data);
     return data.answer;
   } catch (error) {
     console.error('getUserSetting error', error);
