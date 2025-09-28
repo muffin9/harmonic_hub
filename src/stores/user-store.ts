@@ -1,6 +1,12 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { getUser, isAuthenticated, logout as authLogout } from '@/lib/auth';
+import {
+  getUser,
+  isAuthenticated,
+  logout as authLogout,
+  setUser as authSetUser,
+  removeUser as authRemoveUser,
+} from '@/lib/auth';
 
 export interface AppUser {
   id: string;
@@ -39,6 +45,13 @@ export const useUserStore = create<UserState>()(
       ...initialState,
 
       setUser: (user: AppUser | null) => {
+        // auth.ts와 동기화
+        if (user) {
+          authSetUser(user);
+        } else {
+          authRemoveUser();
+        }
+
         set({
           user,
           isAuthenticated: !!user,
@@ -93,6 +106,18 @@ export const useUserStore = create<UserState>()(
         isAuthenticated: state.isAuthenticated,
         isLoading: state.isLoading,
       }), // user, isAuthenticated, isLoading persist
+      onRehydrateStorage: () => (state) => {
+        // 새로고침 시 auth.ts의 정보와 동기화
+        if (state) {
+          const isAuth = isAuthenticated();
+          if (isAuth) {
+            const currentUser = getUser();
+            state.setUser(currentUser);
+          } else {
+            state.setUser(null);
+          }
+        }
+      },
     },
   ),
 );

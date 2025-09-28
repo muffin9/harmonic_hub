@@ -33,12 +33,13 @@ export const getUserSetting = async () => {
     );
 
     const data = await response.json();
+    console.log('data', data);
     return data.answer;
   } catch (error) {
     console.error('getUserSetting error', error);
     return {
       status: false,
-      message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+      message: '알 수 없는 에러 발생, 잠시 후 다시 시도해 주세요.',
     };
   }
 };
