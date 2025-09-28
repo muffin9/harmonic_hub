@@ -34,13 +34,39 @@ export const getUserSetting = async () => {
 
     console.log('getUserSetting: Response status:', response.status);
     console.log('getUserSetting: Response ok:', response.ok);
-    console.log('getUserSetting: Response headers:', response.headers);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
+    // 응답 텍스트를 먼저 확인
+    const responseText = await response.text();
+    console.log('getUserSetting: Response text:', responseText);
+
+    // 빈 응답인 경우 빈 배열 반환
+    if (!responseText || responseText.trim() === '') {
+      console.warn(
+        'getUserSetting: Empty response received, returning empty array',
+      );
+      return [];
+    }
+
+    // JSON 파싱 시도
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('getUserSetting: JSON parse error:', parseError);
+      console.error(
+        'getUserSetting: Response text that failed to parse:',
+        responseText,
+      );
+      return {
+        status: false,
+        message: '서버 응답을 파싱할 수 없습니다.',
+      };
+    }
+
     console.log('getUserSetting: data', data);
     return data.answer;
   } catch (error) {

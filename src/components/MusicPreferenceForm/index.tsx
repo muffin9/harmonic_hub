@@ -63,7 +63,19 @@ export default function MusicPreferenceForm({
         const userSettings = await getUserSetting();
         console.log('userSettings', userSettings);
 
-        if (userSettings && typeof userSettings === 'object') {
+        // 빈 배열이거나 유효하지 않은 응답인 경우 기본값 유지
+        if (
+          userSettings &&
+          Array.isArray(userSettings) &&
+          userSettings.length === 0
+        ) {
+          console.log('No user settings found, using default values');
+          // 기본값은 이미 formData에 설정되어 있으므로 별도 처리 불필요
+        } else if (
+          userSettings &&
+          typeof userSettings === 'object' &&
+          !Array.isArray(userSettings)
+        ) {
           const settings = userSettings as UserSettingData;
 
           // 문자열을 숫자로 변환하여 설정
