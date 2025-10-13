@@ -260,7 +260,7 @@ export default function MusicMainContent() {
             onValueChange={(value: string) => setSelectedScale(value)}
             disabled={isScalesLoading || scales.length === 0}
           >
-            <SelectTrigger className="w-full sm:w-auto min-w-[120px] bg-white border-gray-300 hover:border-purple-400 focus:border-purple-500 cursor-pointer">
+            <SelectTrigger className="w-full sm:w-[180px] bg-white border-gray-300 hover:border-purple-400 focus:border-purple-500 cursor-pointer">
               <SelectValue placeholder={selectedScale ? '' : '스케일 선택'} />
             </SelectTrigger>
             {scales.length > 0 && (
@@ -366,7 +366,7 @@ export default function MusicMainContent() {
                               loginButton.click();
                             }
                           }}
-                          className="bg-[#ffc000] text-white px-6 py-2 rounded-full cursor-pointer"
+                          className="bg-[#ffc000] text-gray-800 px-6 py-2 rounded-full cursor-pointer"
                         >
                           로그인하고 더 연습하기
                         </Button>
@@ -377,8 +377,8 @@ export default function MusicMainContent() {
                   <div className="w-full h-[400px] sm:h-[600px] bg-gray-50 flex flex-col items-center justify-center border-gray-300 rounded-lg">
                     <div className="text-center text-gray-500 px-4">
                       <div className="text-base sm:text-lg font-medium mb-2">
-                        연습할 장르와 스케일을 선택하면 해당 악보를 확인하실 수
-                        있습니다.
+                        연습할 장르와 스케일을 선택하면 <br /> 해당 악보를
+                        확인하실 수 있습니다.
                       </div>
                       {/* <div className="text-xs sm:text-sm">
                         카테고리, 서브장르, 스케일을 모두 선택하시면

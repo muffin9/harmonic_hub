@@ -311,7 +311,7 @@ export default function Review() {
             </p>
             <Button
               onClick={() => setIsSuccessDialogOpen(false)}
-              className="px-6 bg-white text-black hover:bg-white/50 hover:text-black/50"
+              className="px-6 bg-primary text-white hover:bg-primary/90 hover:text-white/50"
             >
               확인
             </Button>
@@ -334,6 +334,13 @@ export default function Review() {
             <p className="text-center text-gray-600 mb-4">
               의견을 적어주시면 더 좋은 서비스로 만들어 가겠습니다 (__)
             </p>
+            <textarea
+              value={negativeFeedback}
+              onChange={(e) => setNegativeFeedback(e.target.value)}
+              placeholder="개선점을 알려주세요..."
+              className="w-full p-3 border border-gray-300 rounded-lg resize-none"
+              rows={3}
+            />
             <div className="flex gap-3 justify-end mt-4">
               <Button
                 onClick={handleNegativeFeedbackSubmit}

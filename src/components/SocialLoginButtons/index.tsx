@@ -11,7 +11,8 @@ export const SocialLoginButtons = () => {
         height={30}
         className="cursor-pointer"
         onClick={async () => {
-          alert('서비스 준비중입니다.');
+          window.location.href =
+            'https://dev.harmonichub.co.kr/api/v1/auth/naver';
         }}
       />
       <Image
@@ -21,7 +22,8 @@ export const SocialLoginButtons = () => {
         height={30}
         className="cursor-pointer"
         onClick={async () => {
-          alert('서비스 준비중입니다.');
+          window.location.href =
+            'https://dev.harmonichub.co.kr/api/v1/auth/google';
         }}
       />
       <Image
