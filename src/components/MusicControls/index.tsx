@@ -510,14 +510,15 @@ export default function MusicControls({
     }
   }, [isMetronomeOn, metronomeBPM]);
 
-  // 메트로놈 토글 함수
-  const toggleMetronome = useCallback(() => {
+  // 메트로놈 팝업 토글 함수 (BPM 영역 노출)
+  const toggleMetronomePopup = useCallback(() => {
     setShowMetronomePopup((prev) => !prev);
-    // 팝업이 열릴 때만 재생/정지 토글
-    if (!showMetronomePopup) {
-      toggleMetronomePlayback();
-    }
-  }, [showMetronomePopup, toggleMetronomePlayback]);
+  }, []);
+
+  // 메트로놈 재생/정지 토글 함수
+  const toggleMetronomePlaybackOnly = useCallback(() => {
+    toggleMetronomePlayback();
+  }, [toggleMetronomePlayback]);
 
   // BPM 슬라이더 드래그 중 변경 함수 (임시 값만 업데이트)
   const handleBPMChange = useCallback(
@@ -778,6 +779,32 @@ export default function MusicControls({
                   <span className="text-xs sm:text-sm font-medium text-[#4A2C5A] w-6 sm:w-8">
                     {tempBPM}
                   </span>
+
+                  {/* 메트로놈 재생/정지 버튼 */}
+                  <button
+                    onClick={toggleMetronomePlaybackOnly}
+                    className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 rounded-full transition-all duration-200 cursor-pointer ${
+                      isMetronomeOn
+                        ? 'bg-[#4A2C5A] text-white hover:bg-[#3A1C4A]'
+                        : 'bg-[#E8D5F2] hover:bg-[#D4C4E0] text-[#4A2C5A]'
+                    }`}
+                  >
+                    {isMetronomeOn ? (
+                      <>
+                        <Square className="w-4 h-4" />
+                        <span className="text-xs sm:text-sm font-medium">
+                          정지
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4" />
+                        <span className="text-xs sm:text-sm font-medium">
+                          재생
+                        </span>
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             </div>
@@ -877,23 +904,18 @@ export default function MusicControls({
           {/* 메트로놈 버튼 */}
           <button
             data-metronome-button
-            onClick={toggleMetronome}
+            onClick={toggleMetronomePopup}
             disabled={!isAuthenticated && !isTrialMode}
             className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 rounded-full transition-all duration-200 cursor-pointer ${
               !isAuthenticated && !isTrialMode
                 ? 'bg-gray-400 cursor-not-allowed text-gray-600'
-                : showMetronomePopup || isMetronomeOn
+                : showMetronomePopup
                 ? 'bg-[#4A2C5A] text-white hover:bg-[#3A1C4A]'
                 : 'bg-[#E8D5F2] hover:bg-[#D4C4E0] text-[#4A2C5A]'
             }`}
           >
             <Volume2 className="w-4 h-4" />
             <span className="text-xs sm:text-sm font-medium">메트로놈</span>
-            {isMetronomeOn ? (
-              <Square className="w-4 h-4" />
-            ) : (
-              <Play className="w-4 h-4" />
-            )}
           </button>
         </div>
       </div>
