@@ -5,7 +5,7 @@ export const SocialLoginButtons = () => {
   return (
     <div className="flex justify-center gap-4">
       <Image
-        src="/naver.svg"
+        src="/naver_logo.png"
         alt="Naver"
         width={30}
         height={30}
@@ -16,7 +16,7 @@ export const SocialLoginButtons = () => {
         }}
       />
       <Image
-        src="/google.svg"
+        src="/google_logo.png"
         alt="Google"
         width={30}
         height={30}
@@ -27,7 +27,7 @@ export const SocialLoginButtons = () => {
         }}
       />
       <Image
-        src="/kakao.svg"
+        src="/kakao_logo.png"
         alt="Kakao"
         width={30}
         height={30}

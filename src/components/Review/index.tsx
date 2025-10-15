@@ -345,7 +345,7 @@ export default function Review() {
               <Button
                 onClick={handleNegativeFeedbackSubmit}
                 disabled={!negativeFeedback.trim()}
-                className="px-6 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400"
+                className="px-6 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white"
               >
                 확인
               </Button>

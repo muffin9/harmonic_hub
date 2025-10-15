@@ -169,7 +169,8 @@ export default function MusicMainContent() {
   // 카테고리, 서브장르, 스케일이 모두 선택되었을 때 악보 데이터 로드
   useEffect(() => {
     if (
-      selectedCategory &&
+      selectedCategory !== null &&
+      selectedCategory !== undefined &&
       selectedSubGenre &&
       selectedScale &&
       scales.length > 0
