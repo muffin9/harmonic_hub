@@ -210,7 +210,7 @@ export default function MusicMainContent() {
     <>
       {/* 음악 카테고리 탭 */}
       <div className="max-w-[820px] mx-auto py-4 bg-white">
-        <div className="flex space-x-3 sm:space-x-6 text-xs sm:text-sm md:text-base font-medium overflow-x-auto">
+        <div className="flex justify-center sm:justify-start space-x-3 sm:space-x-6 text-xs sm:text-sm md:text-base font-medium overflow-x-auto">
           {musicCategories.map((category) => (
             <button
               key={category.id}
@@ -228,7 +228,7 @@ export default function MusicMainContent() {
       </div>
 
       {/* 서브장르 버튼 */}
-      <div className="max-w-[820px] mx-auto flex flex-col sm:flex-row justify-between gap-3 relative bg-[#e8cafe] px-4 py-3">
+      <div className="max-w-[820px] mx-auto flex flex-col flex-row justify-between gap-3 relative bg-[#e8cafe] px-4 py-3">
         <div className="md:min-w-[500px] flex items-center gap-2 sm:gap-3 overflow-x-auto">
           <button className="text-gray-400 hover:text-gray-600 cursor-pointer">
             <ChevronLeft className="h-6 w-6 sm:h-8 sm:w-8 text-[#c287b3]" />

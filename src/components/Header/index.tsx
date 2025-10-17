@@ -130,7 +130,9 @@ const Header = () => {
                 width={32}
                 height={32}
               />
-              <h2 className="text-black font-bold">하모닉허브</h2>
+              <h2 className="text-black font-bold text-base md:text-2xl">
+                하모닉허브
+              </h2>
             </div>
           </Link>
 
@@ -226,7 +228,7 @@ const Header = () => {
         </div>
 
         <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-center mt-4 sm:mt-0">
-          <div className="text-xs md:text-3xl font-semibold text-purple-700 flex justify-center items-center gap-2">
+          <div className="text-sm md:text-3xl font-semibold text-purple-700 flex justify-center items-center gap-2">
             <span role="img" aria-label="music">
               🎼
             </span>

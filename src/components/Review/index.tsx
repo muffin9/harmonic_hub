@@ -201,20 +201,26 @@ export default function Review() {
     <div className="w-full py-4 md:py-8 px-4">
       {/* 상단 통계 */}
       <div className="text-center mb-6">
-        <div className="flex justify-center items-center gap-2 text-black">
-          <p className="mt-5 text-[20px] md:text-[24px]">
+        <div className="flex justify-center items-center gap-2 text-black md:flex-row flex-col">
+          <p className="mt-5 text-[11px] md:text-[24px]">
             학습자들의 음악이 즐거워지고 있어요!
           </p>
-          <img src="/thumb.png" alt="thumb" />
-          <span className="text-[20px] md:text-[40px]">
-            {likeCount.toLocaleString()}
-          </span>
+          <div className="flex justify-center items-center gap-2">
+            <img
+              src="/thumb.png"
+              alt="thumb"
+              className="w-[26px] h-[26px] md:w-[52px] md:h-[52px]"
+            />
+            <span className="text-[20px] md:text-[40px]">
+              {likeCount.toLocaleString()}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* 피드백 입력 영역 */}
-      <div className="max-w-2xl h-[74px] mx-auto">
-        <div className="bg-white rounded-2xl px-4 py-2 border border-gray-100 shadow-[2.21px_2.21px_51px_0px_#d2b7cb]">
+      <div className="max-w-2xl md:h-[74px] h-[50px] mx-auto">
+        <div className="bg-white rounded-2xl md:px-4 md:py-2 py-1 px-2 border border-gray-100 shadow-[2.21px_2.21px_51px_0px_#d2b7cb]">
           <div className="flex items-center gap-3">
             {/* 반응 버튼들 */}
             <div className="flex gap-2">
