@@ -302,7 +302,7 @@ export default function MusicMainContent() {
                 ) : musicSheetsData.musicData.length > 0 ? (
                   <div className="w-full h-[400px] sm:h-[600px] md:h-[800px] lg:h-[1100px] relative bg-white">
                     {/* 음원 선택 버튼들 */}
-                    {musicSheetsData.musicData.length > 1 && (
+                    {/* {musicSheetsData.musicData.length > 1 && (
                       <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10 flex gap-1 sm:gap-2 flex-wrap justify-center max-w-[90%]">
                         {musicSheetsData.musicData.map((music, index) => (
                           <button
@@ -318,7 +318,7 @@ export default function MusicMainContent() {
                           </button>
                         ))}
                       </div>
-                    )}
+                    )} */}
 
                     {/* PDF 뷰어 */}
                     <div className="w-full h-full relative overflow-hidden">
